@@ -1,11 +1,13 @@
 package apsoftware.operationsboard.repository;
 
 import apsoftware.operationsboard.entity.Comment;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-	List<Comment> findByTaskIdOrderByCreatedAtAsc(Long taskId);
+
+    @EntityGraph(attributePaths = {"task", "user"})
+    List<Comment> findByTaskIdOrderByCreatedAtAsc(Long taskId);
 }

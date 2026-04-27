@@ -323,7 +323,7 @@ public class TaskService {
     }
 
     private Task getTask(Long taskId) {
-        return taskRepository.findById(taskId)
+        return taskRepository.findByIdWithDetails(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
     }
 }
