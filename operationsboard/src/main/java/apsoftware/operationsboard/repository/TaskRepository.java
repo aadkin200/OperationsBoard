@@ -1,5 +1,7 @@
 package apsoftware.operationsboard.repository;
 
+import apsoftware.operationsboard.dto.TeamMetricDto;
+import apsoftware.operationsboard.dto.UserWorkloadDto;
 import apsoftware.operationsboard.entity.Task;
 import apsoftware.operationsboard.enums.TaskStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -7,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,4 +34,177 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
     @Query("select t from Task t where t.id = :id")
     Optional<Task> findByIdWithDetails(@Param("id") Long id);
+    
+    @Query("""
+            select new apsoftware.operationsboard.dto.TeamMetricDto(
+                t.team.id,
+                t.team.name,
+                count(t)
+            )
+            from Task t
+            where t.status in (
+                apsoftware.operationsboard.enums.TaskStatus.OPEN,
+                apsoftware.operationsboard.enums.TaskStatus.CLAIMED,
+                apsoftware.operationsboard.enums.TaskStatus.IN_PROGRESS,
+                apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            )
+            group by t.team.id, t.team.name
+            order by t.team.name
+            """)
+    List<TeamMetricDto> countOpenTasksByTeam();
+
+    @Query("""
+            select new apsoftware.operationsboard.dto.TeamMetricDto(
+                t.team.id,
+                t.team.name,
+                count(t)
+            )
+            from Task t
+            where t.dueDate < :today
+            and t.status not in (
+                apsoftware.operationsboard.enums.TaskStatus.COMPLETE,
+                apsoftware.operationsboard.enums.TaskStatus.CANCELLED
+            )
+            group by t.team.id, t.team.name
+            order by t.team.name
+            """)
+    List<TeamMetricDto> countOverdueTasksByTeam(LocalDate today);
+
+    @Query("""
+            select new apsoftware.operationsboard.dto.TeamMetricDto(
+                t.team.id,
+                t.team.name,
+                count(t)
+            )
+            from Task t
+            where t.status = apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            group by t.team.id, t.team.name
+            order by t.team.name
+            """)
+    List<TeamMetricDto> countBlockedTasksByTeam();
+
+    @Query("""
+            select new apsoftware.operationsboard.dto.TeamMetricDto(
+                t.team.id,
+                t.team.name,
+                count(t)
+            )
+            from Task t
+            where t.status = apsoftware.operationsboard.enums.TaskStatus.COMPLETE
+            and t.completedAt >= :startOfMonth
+            and t.completedAt < :startOfNextMonth
+            group by t.team.id, t.team.name
+            order by t.team.name
+            """)
+    List<TeamMetricDto> countCompletedThisMonthByTeam(LocalDateTime startOfMonth, LocalDateTime startOfNextMonth);
+
+    @Query("""
+            select new apsoftware.operationsboard.dto.TeamMetricDto(
+                t.team.id,
+                t.team.name,
+                count(t)
+            )
+            from Task t
+            where t.status in (
+                apsoftware.operationsboard.enums.TaskStatus.OPEN,
+                apsoftware.operationsboard.enums.TaskStatus.CLAIMED,
+                apsoftware.operationsboard.enums.TaskStatus.IN_PROGRESS,
+                apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            )
+            group by t.team.id, t.team.name
+            order by count(t) desc
+            """)
+    List<TeamMetricDto> countWorkloadByTeam();
+
+    @Query("""
+            select new apsoftware.operationsboard.dto.UserWorkloadDto(
+                u.id,
+                u.username,
+                concat(u.firstName, ' ', u.lastName),
+                tm.id,
+                tm.name,
+                count(t)
+            )
+            from Task t
+            join t.assignedUser u
+            join t.team tm
+            where t.status in (
+                apsoftware.operationsboard.enums.TaskStatus.CLAIMED,
+                apsoftware.operationsboard.enums.TaskStatus.IN_PROGRESS,
+                apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            )
+            group by u.id, u.username, u.firstName, u.lastName, tm.id, tm.name
+            order by count(t) desc
+            """)
+    List<UserWorkloadDto> countWorkloadByEmployee();
+    
+    @Query("""
+            select count(t)
+            from Task t
+            where t.team.id = :teamId
+            and t.status in (
+                apsoftware.operationsboard.enums.TaskStatus.OPEN,
+                apsoftware.operationsboard.enums.TaskStatus.CLAIMED,
+                apsoftware.operationsboard.enums.TaskStatus.IN_PROGRESS,
+                apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            )
+            """)
+    Long countOpenTasksForTeam(Long teamId);
+
+    @Query("""
+            select count(t)
+            from Task t
+            where t.team.id = :teamId
+            and t.dueDate < :today
+            and t.status not in (
+                apsoftware.operationsboard.enums.TaskStatus.COMPLETE,
+                apsoftware.operationsboard.enums.TaskStatus.CANCELLED
+            )
+            """)
+    Long countOverdueTasksForTeam(Long teamId, java.time.LocalDate today);
+
+    @Query("""
+            select count(t)
+            from Task t
+            where t.team.id = :teamId
+            and t.status = apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            """)
+    Long countBlockedTasksForTeam(Long teamId);
+
+    @Query("""
+            select count(t)
+            from Task t
+            where t.team.id = :teamId
+            and t.status = apsoftware.operationsboard.enums.TaskStatus.COMPLETE
+            and t.completedAt >= :startOfMonth
+            and t.completedAt < :startOfNextMonth
+            """)
+    Long countCompletedThisMonthForTeam(
+            Long teamId,
+            java.time.LocalDateTime startOfMonth,
+            java.time.LocalDateTime startOfNextMonth
+    );
+
+    @Query("""
+            select new apsoftware.operationsboard.dto.UserWorkloadDto(
+                u.id,
+                u.username,
+                concat(u.firstName, ' ', u.lastName),
+                tm.id,
+                tm.name,
+                count(t)
+            )
+            from Task t
+            join t.assignedUser u
+            join t.team tm
+            where tm.id = :teamId
+            and t.status in (
+                apsoftware.operationsboard.enums.TaskStatus.CLAIMED,
+                apsoftware.operationsboard.enums.TaskStatus.IN_PROGRESS,
+                apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            )
+            group by u.id, u.username, u.firstName, u.lastName, tm.id, tm.name
+            order by count(t) desc
+            """)
+    List<UserWorkloadDto> countWorkloadByEmployeeForTeam(Long teamId);
 }

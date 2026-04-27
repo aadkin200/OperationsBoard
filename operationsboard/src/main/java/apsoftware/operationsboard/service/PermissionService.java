@@ -16,10 +16,6 @@ public class PermissionService {
         this.membershipRepository = membershipRepository;
     }
 
-    public boolean isExecutive(User user) {
-        return user.getGlobalAccessLevel() == GlobalAccessLevel.EXECUTIVE;
-    }
-
     public boolean isTeamMember(Long userId, Long teamId) {
         return membershipRepository.existsByUserIdAndTeamId(userId, teamId);
     }
@@ -47,5 +43,14 @@ public class PermissionService {
     public boolean canUpdateOwnTask(User user, Task task) {
         return task.getAssignedUser() != null
                 && task.getAssignedUser().getId().equals(user.getId());
+    }
+    
+    public boolean isExecutive(User user) {
+        return user.getGlobalAccessLevel() == GlobalAccessLevel.EXECUTIVE
+                || user.getGlobalAccessLevel() == GlobalAccessLevel.SUPER_USER;
+    }
+
+    public boolean isSuperUser(User user) {
+        return user.getGlobalAccessLevel() == GlobalAccessLevel.SUPER_USER;
     }
 }

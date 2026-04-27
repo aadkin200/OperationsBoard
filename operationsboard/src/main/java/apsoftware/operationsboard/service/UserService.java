@@ -3,6 +3,7 @@ package apsoftware.operationsboard.service;
 import apsoftware.operationsboard.entity.User;
 import apsoftware.operationsboard.enums.GlobalAccessLevel;
 import apsoftware.operationsboard.exception.BadRequestException;
+import apsoftware.operationsboard.exception.ForbiddenException;
 import apsoftware.operationsboard.exception.ResourceNotFoundException;
 import apsoftware.operationsboard.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -64,16 +65,23 @@ public class UserService {
     }
 
     @Transactional
-    public User setExecutiveAccess(Long userId, boolean executive) {
-        User user = getUser(userId);
-        user.setGlobalAccessLevel(executive ? GlobalAccessLevel.EXECUTIVE : GlobalAccessLevel.NONE);
-        return userRepository.save(user);
-    }
-
-    @Transactional
     public User deactivateUser(Long userId) {
         User user = getUser(userId);
         user.setActive(false);
+        return userRepository.save(user);
+    }
+    
+    @Transactional
+    public User setExecutiveAccess(Long currentUserId, Long userId, boolean executive) {
+        User currentUser = getUser(currentUserId);
+
+        if (currentUser.getGlobalAccessLevel() != GlobalAccessLevel.SUPER_USER) {
+            throw new ForbiddenException("Only super users can change executive access.");
+        }
+
+        User user = getUser(userId);
+        user.setGlobalAccessLevel(executive ? GlobalAccessLevel.EXECUTIVE : GlobalAccessLevel.NONE);
+
         return userRepository.save(user);
     }
 }

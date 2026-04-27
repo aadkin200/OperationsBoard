@@ -51,10 +51,13 @@ public class UserController {
 
     @PatchMapping("/{userId}/executive")
     public UserDto setExecutiveAccess(
+            @RequestParam Long currentUserId,
             @PathVariable Long userId,
             @RequestParam boolean executive
     ) {
-        return DtoMapper.toUserDto(userService.setExecutiveAccess(userId, executive));
+        return DtoMapper.toUserDto(
+                userService.setExecutiveAccess(currentUserId, userId, executive)
+        );
     }
 
     @PatchMapping("/{userId}/deactivate")

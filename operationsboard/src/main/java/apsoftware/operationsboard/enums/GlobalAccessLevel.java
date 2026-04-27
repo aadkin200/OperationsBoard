@@ -2,5 +2,6 @@ package apsoftware.operationsboard.enums;
 
 public enum GlobalAccessLevel {
     NONE,
-    EXECUTIVE
+    EXECUTIVE,
+    SUPER_USER
 }
