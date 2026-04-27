@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -207,4 +208,54 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             order by count(t) desc
             """)
     List<UserWorkloadDto> countWorkloadByEmployeeForTeam(Long teamId);
+    
+    @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
+    @Query("""
+            select t
+            from Task t
+            where t.assignedUser.id = :userId
+            and t.status in :statuses
+            order by t.dueDate asc, t.priority desc
+            """)
+    List<Task> findAssignedTasksForDashboard(
+            @Param("userId") Long userId,
+            @Param("statuses") Collection<TaskStatus> statuses
+    );
+
+    @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
+    @Query("""
+            select t
+            from Task t
+            where t.assignedUser.id = :userId
+            and t.status = apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            order by t.dueDate asc
+            """)
+    List<Task> findBlockedTasksForUser(@Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
+    @Query("""
+            select t
+            from Task t
+            where t.assignedUser.id = :userId
+            and t.dueDate is not null
+            and t.dueDate <= :dueBy
+            and t.status in :statuses
+            order by t.dueDate asc
+            """)
+    List<Task> findDueSoonTasksForUser(
+            @Param("userId") Long userId,
+            @Param("dueBy") LocalDate dueBy,
+            @Param("statuses") Collection<TaskStatus> statuses
+    );
+
+    @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
+    @Query("""
+            select t
+            from Task t
+            where t.assignedUser is null
+            and t.status = apsoftware.operationsboard.enums.TaskStatus.OPEN
+            and t.team.id in :teamIds
+            order by t.dueDate asc, t.priority desc
+            """)
+    List<Task> findClaimableTasksForTeams(@Param("teamIds") Collection<Long> teamIds);
 }

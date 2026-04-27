@@ -1,11 +1,17 @@
 package apsoftware.operationsboard.service;
 
 import apsoftware.operationsboard.dto.DashboardSummaryDto;
+import apsoftware.operationsboard.dto.MemberDashboardDto;
+import apsoftware.operationsboard.dto.TaskDto;
 import apsoftware.operationsboard.dto.TeamDashboardDto;
+import apsoftware.operationsboard.entity.Membership;
 import apsoftware.operationsboard.entity.Team;
 import apsoftware.operationsboard.entity.User;
+import apsoftware.operationsboard.enums.TaskStatus;
 import apsoftware.operationsboard.exception.ForbiddenException;
 import apsoftware.operationsboard.exception.ResourceNotFoundException;
+import apsoftware.operationsboard.mapper.DtoMapper;
+import apsoftware.operationsboard.repository.MembershipRepository;
 import apsoftware.operationsboard.repository.TaskRepository;
 import apsoftware.operationsboard.repository.TeamRepository;
 import apsoftware.operationsboard.repository.UserRepository;
@@ -13,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class DashboardService {
@@ -20,17 +27,20 @@ public class DashboardService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
+    private final MembershipRepository membershipRepository;
     private final PermissionService permissionService;
 
     public DashboardService(
             TaskRepository taskRepository,
             UserRepository userRepository,
             TeamRepository teamRepository,
+            MembershipRepository membershipRepository,
             PermissionService permissionService
     ) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.teamRepository = teamRepository;
+        this.membershipRepository = membershipRepository;
         this.permissionService = permissionService;
     }
 
@@ -110,5 +120,63 @@ public class DashboardService {
     private Team getTeam(Long teamId) {
         return teamRepository.findById(teamId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + teamId));
+    }
+    
+    public MemberDashboardDto getMemberDashboard(Long currentUserId) {
+        User currentUser = getUser(currentUserId);
+
+        List<TaskStatus> activeStatuses = List.of(
+                TaskStatus.CLAIMED,
+                TaskStatus.IN_PROGRESS,
+                TaskStatus.BLOCKED
+        );
+
+        List<TaskDto> myTasks = taskRepository
+                .findAssignedTasksForDashboard(currentUserId, activeStatuses)
+                .stream()
+                .map(DtoMapper::toTaskDto)
+                .toList();
+
+        List<TaskDto> blockedTasks = taskRepository
+                .findBlockedTasksForUser(currentUserId)
+                .stream()
+                .map(DtoMapper::toTaskDto)
+                .toList();
+
+        List<TaskDto> dueSoonTasks = taskRepository
+                .findDueSoonTasksForUser(currentUserId, LocalDate.now().plusDays(7), activeStatuses)
+                .stream()
+                .map(DtoMapper::toTaskDto)
+                .toList();
+
+        List<Long> teamIds = membershipRepository.findByUserId(currentUserId)
+                .stream()
+                .map(Membership::getTeam)
+                .map(team -> team.getId())
+                .toList();
+
+        List<TaskDto> claimableTasks = teamIds.isEmpty()
+                ? List.of()
+                : taskRepository.findClaimableTasksForTeams(teamIds)
+                        .stream()
+                        .map(DtoMapper::toTaskDto)
+                        .toList();
+
+        MemberDashboardDto dashboard = new MemberDashboardDto();
+        dashboard.setUserId(currentUser.getId());
+        dashboard.setUsername(currentUser.getUsername());
+        dashboard.setFullName(currentUser.getFirstName() + " " + currentUser.getLastName());
+
+        dashboard.setMyTasks(myTasks);
+        dashboard.setBlockedTasks(blockedTasks);
+        dashboard.setDueSoonTasks(dueSoonTasks);
+        dashboard.setClaimableTasks(claimableTasks);
+
+        dashboard.setAssignedTaskCount((long) myTasks.size());
+        dashboard.setBlockedTaskCount((long) blockedTasks.size());
+        dashboard.setDueSoonTaskCount((long) dueSoonTasks.size());
+        dashboard.setClaimableTaskCount((long) claimableTasks.size());
+
+        return dashboard;
     }
 }

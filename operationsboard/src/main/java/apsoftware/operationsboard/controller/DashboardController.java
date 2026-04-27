@@ -1,6 +1,7 @@
 package apsoftware.operationsboard.controller;
 
 import apsoftware.operationsboard.dto.DashboardSummaryDto;
+import apsoftware.operationsboard.dto.MemberDashboardDto;
 import apsoftware.operationsboard.dto.TeamDashboardDto;
 import apsoftware.operationsboard.service.DashboardService;
 import org.springframework.web.bind.annotation.*;
@@ -31,5 +32,10 @@ public class DashboardController {
             @PathVariable Long teamId
     ) {
         return dashboardService.getTeamDashboard(currentUserId, teamId);
+    }
+    
+    @GetMapping("/me")
+    public MemberDashboardDto getMemberDashboard(@RequestParam Long currentUserId) {
+        return dashboardService.getMemberDashboard(currentUserId);
     }
 }
