@@ -1,5 +1,8 @@
 package apsoftware.operationsboard.service;
 
+import apsoftware.operationsboard.dto.TaskBoardColumnDto;
+import apsoftware.operationsboard.dto.TaskBoardDto;
+import apsoftware.operationsboard.dto.TaskDto;
 import apsoftware.operationsboard.entity.Task;
 import apsoftware.operationsboard.entity.Team;
 import apsoftware.operationsboard.entity.User;
@@ -8,6 +11,7 @@ import apsoftware.operationsboard.enums.TaskStatus;
 import apsoftware.operationsboard.exception.BadRequestException;
 import apsoftware.operationsboard.exception.ForbiddenException;
 import apsoftware.operationsboard.exception.ResourceNotFoundException;
+import apsoftware.operationsboard.mapper.DtoMapper;
 import apsoftware.operationsboard.repository.TaskRepository;
 import apsoftware.operationsboard.repository.TeamRepository;
 import apsoftware.operationsboard.repository.UserRepository;
@@ -15,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -286,6 +291,64 @@ public class TaskService {
         taskAuditService.record(saved, currentUser, "TASK_REOPENED", "status", oldStatus.name(), TaskStatus.OPEN.name());
 
         return saved;
+    }
+    
+    public TaskBoardDto getTeamBoard(Long currentUserId, Long teamId) {
+        User currentUser = getUser(currentUserId);
+        Team team = getTeam(teamId);
+
+        if (!permissionService.canViewTeam(currentUser, teamId)) {
+            throw new ForbiddenException("You do not have permission to view this team board.");
+        }
+
+        boolean isManager = permissionService.isTeamManager(currentUserId, teamId);
+        boolean isExecutive = permissionService.isExecutive(currentUser);
+        boolean isMember = permissionService.isTeamMember(currentUserId, teamId);
+
+        boolean canManageBoard = isManager;
+        boolean canCreateTasks = isManager;
+        boolean canClaimTasks = isMember;
+        boolean readOnly = isExecutive && !isMember && !isManager;
+
+        List<Task> tasks = taskRepository.findBoardTasksByTeamId(teamId, LocalDateTime.now());
+
+        List<TaskDto> openTasks = new ArrayList<>();
+        List<TaskDto> claimedTasks = new ArrayList<>();
+        List<TaskDto> inProgressTasks = new ArrayList<>();
+        List<TaskDto> blockedTasks = new ArrayList<>();
+        List<TaskDto> completeTasks = new ArrayList<>();
+        List<TaskDto> cancelledTasks = new ArrayList<>();
+
+        for (Task task : tasks) {
+            TaskDto dto = DtoMapper.toTaskDto(task);
+
+            switch (task.getStatus()) {
+                case OPEN -> openTasks.add(dto);
+                case CLAIMED -> claimedTasks.add(dto);
+                case IN_PROGRESS -> inProgressTasks.add(dto);
+                case BLOCKED -> blockedTasks.add(dto);
+                case COMPLETE -> completeTasks.add(dto);
+                case CANCELLED -> cancelledTasks.add(dto);
+            }
+        }
+
+        TaskBoardDto board = new TaskBoardDto();
+        board.setTeamId(team.getId());
+        board.setTeamName(team.getName());
+
+        board.setCanManageBoard(canManageBoard);
+        board.setCanCreateTasks(canCreateTasks);
+        board.setCanClaimTasks(canClaimTasks);
+        board.setReadOnly(readOnly);
+
+        board.setOpen(new TaskBoardColumnDto("OPEN", "Open", canManageBoard || canClaimTasks, openTasks));
+        board.setClaimed(new TaskBoardColumnDto("CLAIMED", "Claimed", canManageBoard, claimedTasks));
+        board.setInProgress(new TaskBoardColumnDto("IN_PROGRESS", "In Progress", canManageBoard || canClaimTasks, inProgressTasks));
+        board.setBlocked(new TaskBoardColumnDto("BLOCKED", "Blocked", canManageBoard || canClaimTasks, blockedTasks));
+        board.setComplete(new TaskBoardColumnDto("COMPLETE", "Complete", canManageBoard || canClaimTasks, completeTasks));
+        board.setCancelled(new TaskBoardColumnDto("CANCELLED", "Cancelled", canManageBoard, cancelledTasks));
+
+        return board;
     }
 
     private PriorityLevel parsePriority(String priorityValue) {

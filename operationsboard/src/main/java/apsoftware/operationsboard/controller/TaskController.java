@@ -120,4 +120,12 @@ public class TaskController {
     ) {
         return DtoMapper.toTaskDto(taskService.reopenTask(currentUserId, taskId));
     }
+    
+    @GetMapping("/team/{teamId}/board")
+    public TaskBoardDto getTeamBoard(
+            @RequestParam Long currentUserId,
+            @PathVariable Long teamId
+    ) {
+        return taskService.getTeamBoard(currentUserId, teamId);
+    }
 }

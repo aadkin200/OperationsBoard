@@ -258,4 +258,28 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             order by t.dueDate asc, t.priority desc
             """)
     List<Task> findClaimableTasksForTeams(@Param("teamIds") Collection<Long> teamIds);
+    
+    @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
+    @Query("""
+            select t
+            from Task t
+            where t.team.id = :teamId
+            and (
+                t.hiddenAfter is null
+                or t.hiddenAfter > :now
+            )
+            order by
+                case t.priority
+                    when apsoftware.operationsboard.enums.PriorityLevel.CRITICAL then 1
+                    when apsoftware.operationsboard.enums.PriorityLevel.HIGH then 2
+                    when apsoftware.operationsboard.enums.PriorityLevel.NORMAL then 3
+                    when apsoftware.operationsboard.enums.PriorityLevel.LOW then 4
+                end,
+                t.dueDate asc,
+                t.createdAt asc
+            """)
+    List<Task> findBoardTasksByTeamId(
+            @Param("teamId") Long teamId,
+            @Param("now") LocalDateTime now
+    );
 }
