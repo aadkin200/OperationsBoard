@@ -1,0 +1,92 @@
+@if (loading()) {
+  <p>Loading board...</p>
+}
+
+@if (errorMessage()) {
+  <div class="error">
+    {{ errorMessage() }}
+  </div>
+}
+
+@if (board()) {
+  <section class="board-header">
+    <div>
+      <h1>{{ board()?.teamName }} Board</h1>
+      <p>
+        @if (board()?.readOnly) {
+          Read-only view
+        } @else {
+          Active team board
+        }
+      </p>
+    </div>
+
+    <div class="permissions">
+      @if (board()?.canManageBoard) {
+        <span>Manager</span>
+      }
+
+      @if (board()?.canClaimTasks) {
+        <span>Can claim tasks</span>
+      }
+
+      @if (board()?.readOnly) {
+        <span>Executive read-only</span>
+      }
+    </div>
+  </section>
+
+  <section class="kanban-board">
+    @for (column of columns(); track column.key) {
+      <div class="kanban-column">
+        <div class="column-header">
+          <h2>{{ column.label }}</h2>
+          <span>{{ column.count }}</span>
+        </div>
+
+        <div
+          class="task-list"
+          cdkDropList
+          [id]="dropListId(column.key)"
+          [cdkDropListData]="column.tasks"
+          [cdkDropListConnectedTo]="connectedDropLists()"
+          [cdkDropListDisabled]="!column.dropEnabled || board()?.readOnly"
+          (cdkDropListDropped)="onTaskDropped($event, column)"
+        >
+          @for (task of column.tasks; track task.id) {
+            <article class="task-card" cdkDrag [cdkDragDisabled]="board()?.readOnly">
+              <div class="task-card-header">
+                <strong>{{ task.title }}</strong>
+                <span class="priority" [class.critical]="task.priority === 'CRITICAL'" [class.high]="task.priority === 'HIGH'">
+                  {{ task.priority }}
+                </span>
+              </div>
+
+              <p>{{ task.description }}</p>
+
+              <div class="task-meta">
+                <span>Due: {{ task.dueDate || 'None' }}</span>
+                <span>
+                  Assigned:
+                  {{ task.assignedUser ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName : 'Unassigned' }}
+                </span>
+              </div>
+
+              @if (task.blockerReason) {
+                <div class="blocker">
+                  Blocked: {{ task.blockerReason }}
+                </div>
+              }
+
+              @if (task.status === 'OPEN' && board()?.canClaimTasks && !board()?.readOnly) {
+                <button type="button" (click)="claimTask(task)">
+                  Claim
+                </button>
+              }
+            </article>
+          }
+        </div>
+      </div>
+    }
+  </section>
+}

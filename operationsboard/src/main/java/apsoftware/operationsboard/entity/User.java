@@ -18,6 +18,9 @@ public class User {
 
     @Column(name = "username", unique = true, nullable = false)
     private String username;
+    
+    @Column(name = "password")
+    private String password;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -125,4 +128,14 @@ public class User {
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+    
+    
 }

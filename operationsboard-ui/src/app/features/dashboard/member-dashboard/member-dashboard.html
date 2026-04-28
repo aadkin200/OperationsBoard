@@ -1,0 +1,76 @@
+@if (loading()) {
+  <p>Loading dashboard...</p>
+}
+
+@if (errorMessage()) {
+  <div class="error">{{ errorMessage() }}</div>
+}
+
+@if (dashboard()) {
+  <section class="dashboard-header">
+    <h1>My Dashboard</h1>
+    <p>Welcome back, {{ dashboard()?.fullName }}</p>
+  </section>
+
+  <section class="metric-grid">
+    <div class="metric-card">
+      <span>Assigned Tasks</span>
+      <strong>{{ dashboard()?.assignedTaskCount }}</strong>
+    </div>
+
+    <div class="metric-card danger">
+      <span>Blocked Tasks</span>
+      <strong>{{ dashboard()?.blockedTaskCount }}</strong>
+    </div>
+
+    <div class="metric-card warning">
+      <span>Due Soon</span>
+      <strong>{{ dashboard()?.dueSoonTaskCount }}</strong>
+    </div>
+
+    <div class="metric-card">
+      <span>Claimable Tasks</span>
+      <strong>{{ dashboard()?.claimableTaskCount }}</strong>
+    </div>
+  </section>
+
+  <section class="dashboard-section">
+    <h2>My Tasks</h2>
+
+    @if (dashboard()?.myTasks?.length === 0) {
+      <p class="empty">No assigned tasks.</p>
+    }
+
+    <div class="task-list">
+      @for (task of dashboard()?.myTasks; track task.id) {
+        <article class="task-row">
+          <div>
+            <strong>{{ task.title }}</strong>
+            <p>{{ task.description }}</p>
+          </div>
+          <span>{{ task.status }}</span>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="dashboard-section">
+    <h2>Claimable Tasks</h2>
+
+    @if (dashboard()?.claimableTasks?.length === 0) {
+      <p class="empty">No claimable tasks.</p>
+    }
+
+    <div class="task-list">
+      @for (task of dashboard()?.claimableTasks; track task.id) {
+        <article class="task-row">
+          <div>
+            <strong>{{ task.title }}</strong>
+            <p>{{ task.description }}</p>
+          </div>
+          <span>{{ task.priority }}</span>
+        </article>
+      }
+    </div>
+  </section>
+}

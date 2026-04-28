@@ -1,0 +1,90 @@
+@if (loading()) {
+  <p>Loading executive dashboard...</p>
+}
+
+@if (errorMessage()) {
+  <div class="error">{{ errorMessage() }}</div>
+}
+
+@if (dashboard()) {
+  <section class="dashboard-header">
+    <h1>Executive Dashboard</h1>
+    <p>Organization-wide workload visibility</p>
+  </section>
+
+  <section class="dashboard-grid">
+    <div class="dashboard-section">
+      <h2>Open Tasks by Team</h2>
+
+      @for (item of dashboard()?.openTasksByTeam; track item.teamId) {
+        <div class="metric-row">
+          <span>{{ item.teamName }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+      }
+    </div>
+
+    <div class="dashboard-section">
+      <h2>Workload by Team</h2>
+
+      @for (item of dashboard()?.workloadByTeam; track item.teamId) {
+        <div class="metric-row">
+          <span>{{ item.teamName }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+      }
+    </div>
+
+    <div class="dashboard-section">
+      <h2>Blocked Tasks by Team</h2>
+
+      @if (dashboard()?.blockedTasksByTeam?.length === 0) {
+        <p class="empty">No blocked tasks.</p>
+      }
+
+      @for (item of dashboard()?.blockedTasksByTeam; track item.teamId) {
+        <div class="metric-row danger">
+          <span>{{ item.teamName }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+      }
+    </div>
+
+    <div class="dashboard-section">
+      <h2>Overdue Tasks by Team</h2>
+
+      @if (dashboard()?.overdueTasksByTeam?.length === 0) {
+        <p class="empty">No overdue tasks.</p>
+      }
+
+      @for (item of dashboard()?.overdueTasksByTeam; track item.teamId) {
+        <div class="metric-row danger">
+          <span>{{ item.teamName }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+      }
+    </div>
+
+    <div class="dashboard-section wide">
+      <h2>Workload by Employee</h2>
+
+      @for (person of dashboard()?.workloadByEmployee; track person.userId + '-' + person.teamId) {
+        <div class="metric-row">
+          <span>{{ person.fullName }} — {{ person.teamName }}</span>
+          <strong>{{ person.openTaskCount }}</strong>
+        </div>
+      }
+    </div>
+
+    <div class="dashboard-section wide">
+      <h2>Completed This Month by Team</h2>
+
+      @for (item of dashboard()?.completedThisMonthByTeam; track item.teamId) {
+        <div class="metric-row">
+          <span>{{ item.teamName }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+      }
+    </div>
+  </section>
+}

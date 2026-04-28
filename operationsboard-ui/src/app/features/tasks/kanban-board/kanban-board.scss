@@ -1,0 +1,148 @@
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    color: #111827;
+  }
+
+  p {
+    margin: 6px 0 0;
+    color: #6b7280;
+  }
+}
+
+.permissions {
+  display: flex;
+  gap: 8px;
+
+  span {
+    background: #e0ecff;
+    color: #1d4ed8;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(240px, 1fr));
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+}
+
+.kanban-column {
+  background: #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+  min-height: 500px;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 16px;
+    color: #111827;
+  }
+
+  span {
+    background: white;
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-weight: 700;
+  }
+}
+
+.task-list {
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-card {
+  background: white;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  cursor: grab;
+
+  p {
+    color: #4b5563;
+    font-size: 14px;
+  }
+
+  button {
+    margin-top: 12px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+.task-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.priority {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #374151;
+
+  &.high {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.critical {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.task-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.blocker {
+  margin-top: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.error {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 10px;
+}

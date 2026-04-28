@@ -1,0 +1,57 @@
+@if (loading()) {
+  <p>Loading team dashboard...</p>
+}
+
+@if (errorMessage()) {
+  <div class="error">{{ errorMessage() }}</div>
+}
+
+@if (dashboard()) {
+  <section class="dashboard-header">
+    <h1>{{ dashboard()?.teamName }} Dashboard</h1>
+    <p>Team workload and status overview</p>
+  </section>
+
+  <section class="metric-grid">
+    <div class="metric-card">
+      <span>Open Tasks</span>
+      <strong>{{ dashboard()?.openTaskCount }}</strong>
+    </div>
+
+    <div class="metric-card danger">
+      <span>Overdue</span>
+      <strong>{{ dashboard()?.overdueTaskCount }}</strong>
+    </div>
+
+    <div class="metric-card warning">
+      <span>Blocked</span>
+      <strong>{{ dashboard()?.blockedTaskCount }}</strong>
+    </div>
+
+    <div class="metric-card">
+      <span>Completed This Month</span>
+      <strong>{{ dashboard()?.completedThisMonthCount }}</strong>
+    </div>
+  </section>
+
+  <section class="dashboard-section">
+    <h2>Workload by Employee</h2>
+
+    @if (dashboard()?.workloadByEmployee?.length === 0) {
+      <p class="empty">No active assigned work.</p>
+    }
+
+    <div class="workload-list">
+      @for (person of dashboard()?.workloadByEmployee; track person.userId + '-' + person.teamId) {
+        <article class="workload-row">
+          <div>
+            <strong>{{ person.fullName }}</strong>
+            <p>{{ person.username }}</p>
+          </div>
+
+          <span>{{ person.openTaskCount }} active tasks</span>
+        </article>
+      }
+    </div>
+  </section>
+}

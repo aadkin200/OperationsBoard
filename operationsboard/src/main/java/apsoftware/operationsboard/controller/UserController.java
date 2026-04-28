@@ -3,6 +3,7 @@ package apsoftware.operationsboard.controller;
 import apsoftware.operationsboard.dto.UserCreateRequest;
 import apsoftware.operationsboard.dto.UserDto;
 import apsoftware.operationsboard.mapper.DtoMapper;
+import apsoftware.operationsboard.security.CurrentUserService;
 import apsoftware.operationsboard.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +14,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final CurrentUserService currentUserService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, CurrentUserService currentUserService) {
         this.userService = userService;
+        this.currentUserService = currentUserService;
     }
 
     @GetMapping
@@ -51,10 +54,11 @@ public class UserController {
 
     @PatchMapping("/{userId}/executive")
     public UserDto setExecutiveAccess(
-            @RequestParam Long currentUserId,
             @PathVariable Long userId,
             @RequestParam boolean executive
     ) {
+        Long currentUserId = currentUserService.getCurrentUserId();
+
         return DtoMapper.toUserDto(
                 userService.setExecutiveAccess(currentUserId, userId, executive)
         );

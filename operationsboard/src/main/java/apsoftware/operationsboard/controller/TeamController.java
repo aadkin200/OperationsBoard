@@ -3,6 +3,7 @@ package apsoftware.operationsboard.controller;
 import apsoftware.operationsboard.dto.*;
 import apsoftware.operationsboard.entity.Membership;
 import apsoftware.operationsboard.mapper.DtoMapper;
+import apsoftware.operationsboard.security.CurrentUserService;
 import apsoftware.operationsboard.service.TeamService;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,13 +14,16 @@ import java.util.List;
 public class TeamController {
 
     private final TeamService teamService;
+    private final CurrentUserService currentUserService;
 
-    public TeamController(TeamService teamService) {
+    public TeamController(TeamService teamService, CurrentUserService currentUserService) {
         this.teamService = teamService;
+        this.currentUserService = currentUserService;
     }
 
     @GetMapping
-    public List<TeamDto> getVisibleTeams(@RequestParam Long currentUserId) {
+    public List<TeamDto> getVisibleTeams() {
+    	Long currentUserId = currentUserService.getCurrentUserId();
         return teamService.getVisibleTeams(currentUserId)
                 .stream()
                 .map(DtoMapper::toTeamDto)
@@ -28,17 +32,17 @@ public class TeamController {
 
     @GetMapping("/{teamId}")
     public TeamDto getTeam(
-            @RequestParam Long currentUserId,
             @PathVariable Long teamId
     ) {
+    	Long currentUserId = currentUserService.getCurrentUserId();
         return DtoMapper.toTeamDto(teamService.getTeam(currentUserId, teamId));
     }
 
     @GetMapping("/{teamId}/members")
     public List<MembershipDto> getTeamMembers(
-            @RequestParam Long currentUserId,
             @PathVariable Long teamId
     ) {
+    	Long currentUserId = currentUserService.getCurrentUserId();
         return teamService.getTeamMembers(currentUserId, teamId)
                 .stream()
                 .map(DtoMapper::toMembershipDto)
@@ -54,10 +58,10 @@ public class TeamController {
 
     @PostMapping("/{teamId}/members")
     public MembershipDto addUserToTeam(
-            @RequestParam Long currentUserId,
             @PathVariable Long teamId,
             @RequestBody MembershipCreateRequest request
     ) {
+    	Long currentUserId = currentUserService.getCurrentUserId();
         Membership membership = teamService.addUserToTeam(
                 currentUserId,
                 teamId,

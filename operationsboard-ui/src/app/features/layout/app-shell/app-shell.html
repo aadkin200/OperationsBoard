@@ -1,0 +1,30 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <h2>Operations Board</h2>
+
+      <nav>
+        <a routerLink="/dashboard/me" routerLinkActive="active">My Dashboard</a>
+        <a routerLink="/team/1/board" routerLinkActive="active">Team Board</a>
+        <a routerLink="/dashboard/team/1" routerLinkActive="active">Team Dashboard</a>
+        <a routerLink="/dashboard/executive" routerLinkActive="active">Executive Dashboard</a>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+  @if (authService.currentUser()) {
+    <div class="user-name">
+      {{ authService.currentUser()?.firstName }} {{ authService.currentUser()?.lastName }}
+    </div>
+  }
+
+  <button class="logout-button" type="button" (click)="logout()">
+    Logout
+  </button>
+</div>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
