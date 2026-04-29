@@ -1,0 +1,19 @@
+<div class="modal-backdrop">
+  <div class="modal-card">
+    <h2>Block Task</h2>
+    <p>Enter the reason this task is blocked.</p>
+
+    <textarea
+      [(ngModel)]="reason"
+      placeholder="Example: Waiting on access approval..."
+      rows="5"
+    ></textarea>
+
+    <div class="actions">
+      <button type="button" class="secondary" (click)="close()">Cancel</button>
+      <button type="button" class="primary" [disabled]="!reason.trim()" (click)="submit()">
+        Save Blocker
+      </button>
+    </div>
+  </div>
+</div>

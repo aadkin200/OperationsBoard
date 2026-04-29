@@ -12,16 +12,14 @@
     </div>
 
     <div class="sidebar-footer">
-  @if (authService.currentUser()) {
-    <div class="user-name">
-      {{ authService.currentUser()?.firstName }} {{ authService.currentUser()?.lastName }}
-    </div>
-  }
+      @if (authService.currentUser()) {
+        <div class="user-name">
+          {{ authService.currentUser()?.firstName }} {{ authService.currentUser()?.lastName }}
+        </div>
+      }
 
-  <button class="logout-button" type="button" (click)="logout()">
-    Logout
-  </button>
-</div>
+      <button class="logout-button" type="button" (click)="logout()">Logout</button>
+    </div>
   </aside>
 
   <main class="content">

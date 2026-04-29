@@ -6,19 +6,18 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-app-shell',
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app-shell.html',
-  styleUrl: './app-shell.scss'
+  styleUrl: './app-shell.scss',
 })
 export class AppShell {
-
   constructor(
     public authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   logout(): void {
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/login']),
-      error: () => this.router.navigate(['/login'])
+      error: () => this.router.navigate(['/login']),
     });
   }
 }

@@ -212,8 +212,39 @@ public class TaskService {
         boolean isManager = permissionService.canManageTask(currentUser, task);
         boolean isAssignedUser = permissionService.canUpdateOwnTask(currentUser, task);
 
-        if (!isManager && !isAssignedUser) {
-            throw new ForbiddenException("Only the assigned user or a manager can update task status.");
+        boolean isOpenUnassignedTask =
+                oldStatus == TaskStatus.OPEN && task.getAssignedUser() == null;
+
+        boolean canClaimAndMove =
+                isOpenUnassignedTask && permissionService.canClaimTask(currentUser, task);
+
+        if (newStatus == TaskStatus.CANCELLED && !isManager) {
+            throw new ForbiddenException("Only managers can cancel tasks.");
+        }
+
+        if (newStatus == TaskStatus.COMPLETE && isOpenUnassignedTask && !isManager) {
+            throw new BadRequestException("Open tasks must be claimed or started before they can be completed.");
+        }
+
+        if (!isManager && !isAssignedUser && !canClaimAndMove) {
+            throw new ForbiddenException("Only the assigned user, a manager, or a team member claiming open work can update task status.");
+        }
+
+        String oldAssignedUserId = task.getAssignedUser() == null
+                ? null
+                : task.getAssignedUser().getId().toString();
+
+        if (newStatus == TaskStatus.OPEN) {
+            task.setAssignedUser(null);
+            task.setCompletedAt(null);
+            task.setHiddenAfter(null);
+            task.setBlockerReason(null);
+        }
+
+        if (canClaimAndMove
+                && newStatus != TaskStatus.OPEN
+                && newStatus != TaskStatus.CANCELLED) {
+            task.setAssignedUser(currentUser);
         }
 
         if (newStatus == TaskStatus.BLOCKED && (blockerReason == null || blockerReason.isBlank())) {
@@ -223,11 +254,14 @@ public class TaskService {
         if (newStatus == TaskStatus.COMPLETE) {
             task.setCompletedAt(LocalDateTime.now());
             task.setHiddenAfter(LocalDateTime.now().plusDays(7));
+        } else if (newStatus != TaskStatus.OPEN) {
+            task.setCompletedAt(null);
+            task.setHiddenAfter(null);
         }
 
         if (newStatus == TaskStatus.BLOCKED) {
             task.setBlockerReason(blockerReason.trim());
-        } else {
+        } else if (newStatus != TaskStatus.OPEN) {
             task.setBlockerReason(null);
         }
 
@@ -237,8 +271,17 @@ public class TaskService {
 
         taskAuditService.record(saved, currentUser, "STATUS_CHANGED", "status", oldStatus.name(), newStatus.name());
 
+        String newAssignedUserId = saved.getAssignedUser() == null
+                ? null
+                : saved.getAssignedUser().getId().toString();
+
+        if ((oldAssignedUserId == null && newAssignedUserId != null)
+                || (oldAssignedUserId != null && !oldAssignedUserId.equals(newAssignedUserId))) {
+            taskAuditService.record(saved, currentUser, "ASSIGNMENT_CHANGED", "assigned_user_id", oldAssignedUserId, newAssignedUserId);
+        }
+
         if (newStatus == TaskStatus.BLOCKED) {
-            taskAuditService.record(saved, currentUser, "BLOCKER_ADDED", "blocker_reason", null, task.getBlockerReason());
+            taskAuditService.record(saved, currentUser, "BLOCKER_ADDED", "blocker_reason", null, saved.getBlockerReason());
         }
 
         return saved;

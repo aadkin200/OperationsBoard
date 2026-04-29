@@ -6,10 +6,9 @@ import { DashboardSummaryDto } from '../../../core/models/api.models';
   selector: 'app-executive-dashboard',
   imports: [],
   templateUrl: './executive-dashboard.html',
-  styleUrl: './executive-dashboard.scss'
+  styleUrl: './executive-dashboard.scss',
 })
 export class ExecutiveDashboard implements OnInit {
-
   dashboard = signal<DashboardSummaryDto | null>(null);
   loading = signal(false);
   errorMessage = signal<string | null>(null);
@@ -20,14 +19,14 @@ export class ExecutiveDashboard implements OnInit {
     this.loading.set(true);
 
     this.dashboardService.getExecutiveDashboard().subscribe({
-      next: dashboard => {
+      next: (dashboard) => {
         this.dashboard.set(dashboard);
         this.loading.set(false);
       },
       error: () => {
         this.errorMessage.set('Unable to load executive dashboard.');
         this.loading.set(false);
-      }
+      },
     });
   }
 }

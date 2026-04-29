@@ -57,7 +57,11 @@
             <article class="task-card" cdkDrag [cdkDragDisabled]="board()?.readOnly">
               <div class="task-card-header">
                 <strong>{{ task.title }}</strong>
-                <span class="priority" [class.critical]="task.priority === 'CRITICAL'" [class.high]="task.priority === 'HIGH'">
+                <span
+                  class="priority"
+                  [class.critical]="task.priority === 'CRITICAL'"
+                  [class.high]="task.priority === 'HIGH'"
+                >
                   {{ task.priority }}
                 </span>
               </div>
@@ -68,20 +72,20 @@
                 <span>Due: {{ task.dueDate || 'None' }}</span>
                 <span>
                   Assigned:
-                  {{ task.assignedUser ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName : 'Unassigned' }}
+                  {{
+                    task.assignedUser
+                      ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName
+                      : 'Unassigned'
+                  }}
                 </span>
               </div>
 
               @if (task.blockerReason) {
-                <div class="blocker">
-                  Blocked: {{ task.blockerReason }}
-                </div>
+                <div class="blocker">Blocked: {{ task.blockerReason }}</div>
               }
 
               @if (task.status === 'OPEN' && board()?.canClaimTasks && !board()?.readOnly) {
-                <button type="button" (click)="claimTask(task)">
-                  Claim
-                </button>
+                <button type="button" (click)="claimTask(task)">Claim</button>
               }
             </article>
           }
@@ -89,4 +93,11 @@
       </div>
     }
   </section>
+}
+
+@if (showBlockerModal()) {
+  <app-blocker-modal
+    (cancel)="cancelBlockerModal()"
+    (submitReason)="submitBlockerReason($event)"
+  ></app-blocker-modal>
 }
