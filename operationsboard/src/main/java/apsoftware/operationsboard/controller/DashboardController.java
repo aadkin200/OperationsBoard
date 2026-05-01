@@ -1,6 +1,7 @@
 package apsoftware.operationsboard.controller;
 
 import apsoftware.operationsboard.dto.DashboardSummaryDto;
+import apsoftware.operationsboard.dto.ExecutiveDashboardDto;
 import apsoftware.operationsboard.dto.MemberDashboardDto;
 import apsoftware.operationsboard.dto.TeamDashboardDto;
 import apsoftware.operationsboard.security.CurrentUserService;
@@ -20,7 +21,7 @@ public class DashboardController {
     }
 
     @GetMapping("/executive")
-    public DashboardSummaryDto getExecutiveDashboard() {
+    public ExecutiveDashboardDto getExecutiveDashboard() {
         Long currentUserId = currentUserService.getCurrentUserId();
         return dashboardService.getExecutiveDashboard(currentUserId);
     }

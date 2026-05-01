@@ -1,77 +1,3 @@
-// .app-shell {
-//   display: flex;
-//   min-height: 100vh;
-//   background: #f4f6f8;
-// }
-
-// .sidebar {
-//   width: 260px;
-//   background: #1f2937;
-//   color: white;
-//   padding: 24px;
-
-//   h2 {
-//     margin: 0 0 32px;
-//     font-size: 22px;
-//   }
-
-//   nav {
-//     display: flex;
-//     flex-direction: column;
-//     gap: 12px;
-//   }
-
-//   a {
-//     color: #d1d5db;
-//     text-decoration: none;
-//     padding: 10px 12px;
-//     border-radius: 8px;
-//   }
-
-//   a.active,
-//   a:hover {
-//     background: #374151;
-//     color: white;
-//   }
-// }
-
-// .content {
-//   flex: 1;
-//   padding: 24px;
-// }
-
-// .user-box {
-//   background: #111827;
-//   border: 1px solid #374151;
-//   border-radius: 10px;
-//   padding: 12px;
-//   margin-bottom: 24px;
-
-//   strong {
-//     display: block;
-//     color: white;
-//     margin-bottom: 4px;
-//   }
-
-//   span {
-//     color: #9ca3af;
-//     font-size: 12px;
-//     font-weight: 700;
-//   }
-// }
-
-// .logout-button {
-//   margin-top: 24px;
-//   width: 100%;
-//   padding: 10px 12px;
-//   border: none;
-//   border-radius: 8px;
-//   background: #dc2626;
-//   color: white;
-//   font-weight: 800;
-//   cursor: pointer;
-// }
-
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -79,7 +5,7 @@
 }
 
 .sidebar {
-  width: 260px;
+  width: 280px;
   background: #1f2937;
   color: white;
   padding: 24px;
@@ -96,7 +22,7 @@
   nav {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   a {
@@ -110,6 +36,71 @@
   a:hover {
     background: #374151;
     color: white;
+  }
+}
+
+.nav-toggle,
+.team-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #d1d5db;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-toggle {
+  margin-top: 8px;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.team-toggle {
+  font-weight: 700;
+}
+
+.nav-toggle:hover,
+.team-toggle:hover {
+  background: #374151;
+  color: white;
+}
+
+.teams-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-left: 10px;
+  padding-left: 12px;
+  border-left: 1px solid #4b5563;
+}
+
+.team-node {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid #4b5563;
+
+  a {
+    font-size: 14px;
+    padding: 8px 10px;
   }
 }
 

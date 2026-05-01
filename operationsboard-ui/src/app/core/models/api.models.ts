@@ -3,6 +3,7 @@ export type MembershipRole = 'MEMBER' | 'MANAGER';
 export type TaskStatus = 'OPEN' | 'CLAIMED' | 'IN_PROGRESS' | 'BLOCKED' | 'COMPLETE' | 'CANCELLED';
 export type PriorityLevel = 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
 export type CommentType = 'GENERAL' | 'BLOCKER' | 'EXECUTIVE';
+export type HealthStatus = 'GREEN' | 'YELLOW' | 'RED';
 
 export interface UserDto {
   id: number;
@@ -71,6 +72,52 @@ export interface UserWorkloadDto {
   openTaskCount: number;
 }
 
+export interface TeamHealthDto {
+  teamId: number;
+  teamName: string;
+  openCount: number;
+  blockedCount: number;
+  overdueCount: number;
+  unassignedCount: number;
+  completedThisMonth: number;
+  healthStatus: HealthStatus;
+}
+
+export interface EscalationItemDto {
+  taskId: number;
+  title: string;
+  teamName: string;
+  assignedUserName: string;
+  priority: PriorityLevel;
+  blockerReason: string | null;
+  daysBlocked: number;
+  dueDate: string | null;
+}
+
+export interface CompletionTrendDto {
+  year: number;
+  month: number;
+  monthLabel: string;
+  count: number;
+}
+
+export interface ExecutiveDashboardDto {
+  totalActiveTasks: number;
+  totalBlocked: number;
+  totalDueSoon: number;
+  totalOverdue: number;
+  totalCriticalRisk: number;
+  totalUnassigned: number;
+  completedThisMonth: number;
+  workloadByTeam: TeamMetricDto[];
+  completedByTeam: TeamMetricDto[];
+  completionTrend: CompletionTrendDto[];
+  teamHealth: TeamHealthDto[];
+  escalationQueue: EscalationItemDto[];
+  workloadByEmployee: UserWorkloadDto[];
+  unassignedBacklogByTeam: TeamMetricDto[];
+}
+
 export interface MemberDashboardDto {
   userId: number;
   username: string;
@@ -107,4 +154,20 @@ export interface DashboardSummaryDto {
 export interface LoginRequest {
   username: string;
   password: string;
+}
+
+export interface TeamDto {
+  id: number;
+  name: string;
+  description: string | null;
+  active: boolean;
+}
+
+export interface SidebarTeamDto {
+  teamId: number;
+  teamName: string;
+  role: MembershipRole | null;
+  canViewBoard: boolean;
+  canViewMetrics: boolean;
+  executiveView: boolean;
 }

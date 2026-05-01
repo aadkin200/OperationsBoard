@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jasperReport
+    xmlns="http://jasperreports.sourceforge.net/jasperreports"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://jasperreports.sourceforge.net/jasperreports
+        http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+    name="executive_dashboard"
+    language="java"
+    pageWidth="595"
+    pageHeight="842"
+    columnWidth="535"
+    leftMargin="30"
+    rightMargin="30"
+    topMargin="20"
+    bottomMargin="20">
+
+    <parameter name="reportDate" class="java.lang.String"/>
+    <parameter name="totalActiveTasks" class="java.lang.Long"/>
+    <parameter name="totalBlocked" class="java.lang.Long"/>
+    <parameter name="totalOverdue" class="java.lang.Long"/>
+    <parameter name="totalDueSoon" class="java.lang.Long"/>
+    <parameter name="totalCriticalRisk" class="java.lang.Long"/>
+    <parameter name="totalUnassigned" class="java.lang.Long"/>
+    <parameter name="orgCompleted" class="java.lang.Long"/>
+
+    <field name="teamName" class="java.lang.String"/>
+    <field name="healthStatus" class="java.lang.String"/>
+    <field name="openCount" class="java.lang.Long"/>
+    <field name="blockedCount" class="java.lang.Long"/>
+    <field name="overdueCount" class="java.lang.Long"/>
+    <field name="unassignedCount" class="java.lang.Long"/>
+    <field name="completedThisMonth" class="java.lang.Long"/>
+
+    <title>
+        <band height="175" splitType="Stretch">
+
+            <rectangle>
+                <reportElement x="0" y="0" width="535" height="48" backcolor="#1E3A5F" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+
+            <staticText>
+                <reportElement x="10" y="8" width="380" height="20" forecolor="#FFFFFF"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="15" isBold="true"/>
+                </textElement>
+                <text><![CDATA[OPERATIONS BOARD - EXECUTIVE REPORT]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="390" y="8" width="145" height="20" forecolor="#FFFFFF"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="SansSerif" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{reportDate}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="55" width="300" height="14" forecolor="#374151"/>
+                <textElement>
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ORGANIZATION SUMMARY]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement x="0" y="72" width="74" height="82" backcolor="#EFF6FF" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#BFDBFE"/>
+                </graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="0" y="78" width="74" height="34" forecolor="#1D4ED8"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{totalActiveTasks}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="116" width="74" height="30" forecolor="#1E40AF"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <text><![CDATA[Active Tasks]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement x="77" y="72" width="74" height="82" backcolor="#FEF2F2" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#FECACA"/>
+                </graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="77" y="78" width="74" height="34" forecolor="#B91C1C"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{totalBlocked}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="77" y="116" width="74" height="30" forecolor="#991B1B"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <text><![CDATA[Blocked]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement x="154" y="72" width="74" height="82" backcolor="#FEF2F2" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#FECACA"/>
+                </graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="154" y="78" width="74" height="34" forecolor="#B91C1C"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{totalOverdue}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="154" y="116" width="74" height="30" forecolor="#991B1B"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <text><![CDATA[Overdue]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement x="231" y="72" width="74" height="82" backcolor="#FFFBEB" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#FDE68A"/>
+                </graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="231" y="78" width="74" height="34" forecolor="#B45309"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{totalDueSoon}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="231" y="116" width="74" height="30" forecolor="#92400E"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <text><![CDATA[Due in 7 Days]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement x="308" y="72" width="74" height="82" backcolor="#FEF2F2" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#FECACA"/>
+                </graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="308" y="78" width="74" height="34" forecolor="#B91C1C"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{totalCriticalRisk}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="308" y="116" width="74" height="30" forecolor="#991B1B"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <text><![CDATA[Critical Risk]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement x="385" y="72" width="74" height="82" backcolor="#FFFBEB" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#FDE68A"/>
+                </graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="385" y="78" width="74" height="34" forecolor="#B45309"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{totalUnassigned}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="385" y="116" width="74" height="30" forecolor="#92400E"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <text><![CDATA[Unassigned]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement x="462" y="72" width="73" height="82" backcolor="#F0FDF4" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#A7F3D0"/>
+                </graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="462" y="78" width="73" height="34" forecolor="#15803D"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{orgCompleted}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="462" y="116" width="73" height="30" forecolor="#065F46"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <text><![CDATA[Completed/Mo]]></text>
+            </staticText>
+
+        </band>
+    </title>
+
+    <pageHeader>
+        <band height="22">
+            <staticText>
+                <reportElement x="0" y="4" width="400" height="14" forecolor="#111827"/>
+                <textElement>
+                    <font fontName="SansSerif" size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[TEAM HEALTH SCORECARD]]></text>
+            </staticText>
+        </band>
+    </pageHeader>
+
+    <columnHeader>
+        <band height="24" splitType="Stretch">
+            <rectangle>
+                <reportElement x="0" y="0" width="535" height="24" backcolor="#1E3A5F" mode="Opaque"/>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+
+            <staticText>
+                <reportElement x="7" y="5" width="167" height="14" forecolor="#FFFFFF"/>
+                <textElement>
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[TEAM]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="174" y="5" width="67" height="14" forecolor="#FFFFFF"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[STATUS]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="241" y="5" width="53" height="14" forecolor="#FFFFFF"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ACTIVE]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="294" y="5" width="53" height="14" forecolor="#FFFFFF"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[BLOCKED]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="347" y="5" width="53" height="14" forecolor="#FFFFFF"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[OVERDUE]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="400" y="5" width="61" height="14" forecolor="#FFFFFF"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[UNASSIGNED]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="461" y="5" width="74" height="14" forecolor="#FFFFFF"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[COMPLETED/MO]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="26" splitType="Stretch">
+
+            <rectangle>
+                <reportElement x="0" y="0" width="535" height="26" backcolor="#FEF2F2" mode="Opaque">
+                    <printWhenExpression><![CDATA["RED".equals($F{healthStatus})]]></printWhenExpression>
+                </reportElement>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+
+            <rectangle>
+                <reportElement x="0" y="0" width="535" height="26" backcolor="#FFFBEB" mode="Opaque">
+                    <printWhenExpression><![CDATA["YELLOW".equals($F{healthStatus})]]></printWhenExpression>
+                </reportElement>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+
+            <rectangle>
+                <reportElement x="0" y="0" width="535" height="26" backcolor="#F0FDF4" mode="Opaque">
+                    <printWhenExpression><![CDATA["GREEN".equals($F{healthStatus})]]></printWhenExpression>
+                </reportElement>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+
+            <rectangle>
+                <reportElement x="0" y="0" width="4" height="26" backcolor="#EF4444" mode="Opaque">
+                    <printWhenExpression><![CDATA["RED".equals($F{healthStatus})]]></printWhenExpression>
+                </reportElement>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+
+            <rectangle>
+                <reportElement x="0" y="0" width="4" height="26" backcolor="#F59E0B" mode="Opaque">
+                    <printWhenExpression><![CDATA["YELLOW".equals($F{healthStatus})]]></printWhenExpression>
+                </reportElement>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+
+            <rectangle>
+                <reportElement x="0" y="0" width="4" height="26" backcolor="#10B981" mode="Opaque">
+                    <printWhenExpression><![CDATA["GREEN".equals($F{healthStatus})]]></printWhenExpression>
+                </reportElement>
+                <graphicElement>
+                    <pen lineWidth="0.0"/>
+                </graphicElement>
+            </rectangle>
+
+            <line>
+                <reportElement x="0" y="25" width="535" height="1" forecolor="#E5E7EB"/>
+            </line>
+
+            <textField isStretchWithOverflow="true">
+                <reportElement x="7" y="6" width="163" height="14" forecolor="#111827"/>
+                <textElement>
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{teamName}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="174" y="6" width="67" height="14"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[
+                    "RED".equals($F{healthStatus}) ? "At Risk" :
+                    "YELLOW".equals($F{healthStatus}) ? "Watch" : "Healthy"
+                ]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="241" y="6" width="53" height="14" forecolor="#374151"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{openCount}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="294" y="6" width="53" height="14" forecolor="#374151">
+                    <printWhenExpression><![CDATA[$F{blockedCount}.longValue() == 0L]]></printWhenExpression>
+                </reportElement>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{blockedCount}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="294" y="6" width="53" height="14" forecolor="#DC2626">
+                    <printWhenExpression><![CDATA[$F{blockedCount}.longValue() > 0L]]></printWhenExpression>
+                </reportElement>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{blockedCount}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="347" y="6" width="53" height="14" forecolor="#374151">
+                    <printWhenExpression><![CDATA[$F{overdueCount}.longValue() == 0L]]></printWhenExpression>
+                </reportElement>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{overdueCount}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="347" y="6" width="53" height="14" forecolor="#DC2626">
+                    <printWhenExpression><![CDATA[$F{overdueCount}.longValue() > 0L]]></printWhenExpression>
+                </reportElement>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{overdueCount}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="400" y="6" width="61" height="14" forecolor="#374151"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{unassignedCount}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="461" y="6" width="74" height="14" forecolor="#059669"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{completedThisMonth}]]></textFieldExpression>
+            </textField>
+
+        </band>
+    </detail>
+
+    <pageFooter>
+        <band height="20">
+            <textField>
+                <reportElement x="0" y="4" width="535" height="12" forecolor="#9CA3AF"/>
+                <textElement textAlignment="Right">
+                    <font fontName="SansSerif" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+    <noData>
+        <band height="30">
+            <staticText>
+                <reportElement x="0" y="8" width="535" height="18" forecolor="#6B7280"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="11"/>
+                </textElement>
+                <text><![CDATA[No team data available.]]></text>
+            </staticText>
+        </band>
+    </noData>
+
+</jasperReport>

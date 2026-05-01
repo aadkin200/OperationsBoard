@@ -4,10 +4,43 @@
       <h2>Operations Board</h2>
 
       <nav>
-        <a routerLink="/dashboard/me" routerLinkActive="active">My Dashboard</a>
-        <a routerLink="/team/1/board" routerLinkActive="active">Team Board</a>
-        <a routerLink="/dashboard/team/1" routerLinkActive="active">Team Dashboard</a>
-        <a routerLink="/dashboard/executive" routerLinkActive="active">Executive Dashboard</a>
+        <a routerLink="/dashboard/me" routerLinkActive="active"> My Dashboard </a>
+
+        <a routerLink="/dashboard/executive" routerLinkActive="active"> Executive Dashboard </a>
+
+        <button class="nav-toggle" type="button" (click)="toggleTeams()">
+          <span>Teams</span>
+          <span>{{ teamsExpanded() ? '▾' : '▸' }}</span>
+        </button>
+
+        @if (teamsExpanded()) {
+          <div class="teams-tree">
+            @for (team of teams(); track team.teamId) {
+              <div class="team-node">
+                <button class="team-toggle" type="button" (click)="toggleTeam(team.teamId)">
+                  <span>{{ team.teamName }}</span>
+                  <span>{{ isTeamExpanded(team.teamId) ? '▾' : '▸' }}</span>
+                </button>
+
+                @if (isTeamExpanded(team.teamId)) {
+                  <div class="team-subnav">
+                    @if (team.canViewBoard) {
+                      <a [routerLink]="['/team', team.teamId, 'board']" routerLinkActive="active">
+                        Board
+                      </a>
+                    }
+
+                    @if (team.canViewMetrics) {
+                      <a [routerLink]="['/dashboard/team', team.teamId]" routerLinkActive="active">
+                        Metrics
+                      </a>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
       </nav>
     </div>
 

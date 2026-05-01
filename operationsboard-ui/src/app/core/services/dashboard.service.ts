@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import {
   DashboardSummaryDto,
+  ExecutiveDashboardDto,
   MemberDashboardDto,
   TeamDashboardDto
 } from '../models/api.models';
@@ -23,6 +24,10 @@ export class DashboardService {
   }
 
   getExecutiveDashboard() {
-    return this.http.get<DashboardSummaryDto>(`${this.baseUrl}/executive`);
+    return this.http.get<ExecutiveDashboardDto>(`${this.baseUrl}/executive`);
+  }
+
+  getDashboardSummary() {
+    return this.http.get<DashboardSummaryDto>(`${this.baseUrl}/summary`);
   }
 }

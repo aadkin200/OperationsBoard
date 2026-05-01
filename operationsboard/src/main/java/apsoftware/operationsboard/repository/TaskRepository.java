@@ -35,7 +35,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
     @Query("select t from Task t where t.id = :id")
     Optional<Task> findByIdWithDetails(@Param("id") Long id);
-    
+
     @Query("""
             select new apsoftware.operationsboard.dto.TeamMetricDto(
                 t.team.id,
@@ -69,7 +69,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             group by t.team.id, t.team.name
             order by t.team.name
             """)
-    List<TeamMetricDto> countOverdueTasksByTeam(LocalDate today);
+    List<TeamMetricDto> countOverdueTasksByTeam(@Param("today") LocalDate today);
 
     @Query("""
             select new apsoftware.operationsboard.dto.TeamMetricDto(
@@ -97,7 +97,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             group by t.team.id, t.team.name
             order by t.team.name
             """)
-    List<TeamMetricDto> countCompletedThisMonthByTeam(LocalDateTime startOfMonth, LocalDateTime startOfNextMonth);
+    List<TeamMetricDto> countCompletedThisMonthByTeam(
+            @Param("startOfMonth") LocalDateTime startOfMonth,
+            @Param("startOfNextMonth") LocalDateTime startOfNextMonth
+    );
 
     @Query("""
             select new apsoftware.operationsboard.dto.TeamMetricDto(
@@ -138,7 +141,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             order by count(t) desc
             """)
     List<UserWorkloadDto> countWorkloadByEmployee();
-    
+
     @Query("""
             select count(t)
             from Task t
@@ -150,7 +153,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 apsoftware.operationsboard.enums.TaskStatus.BLOCKED
             )
             """)
-    Long countOpenTasksForTeam(Long teamId);
+    Long countOpenTasksForTeam(@Param("teamId") Long teamId);
 
     @Query("""
             select count(t)
@@ -162,7 +165,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 apsoftware.operationsboard.enums.TaskStatus.CANCELLED
             )
             """)
-    Long countOverdueTasksForTeam(Long teamId, java.time.LocalDate today);
+    Long countOverdueTasksForTeam(@Param("teamId") Long teamId, @Param("today") java.time.LocalDate today);
 
     @Query("""
             select count(t)
@@ -170,7 +173,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             where t.team.id = :teamId
             and t.status = apsoftware.operationsboard.enums.TaskStatus.BLOCKED
             """)
-    Long countBlockedTasksForTeam(Long teamId);
+    Long countBlockedTasksForTeam(@Param("teamId") Long teamId);
 
     @Query("""
             select count(t)
@@ -181,9 +184,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             and t.completedAt < :startOfNextMonth
             """)
     Long countCompletedThisMonthForTeam(
-            Long teamId,
-            java.time.LocalDateTime startOfMonth,
-            java.time.LocalDateTime startOfNextMonth
+            @Param("teamId") Long teamId,
+            @Param("startOfMonth") java.time.LocalDateTime startOfMonth,
+            @Param("startOfNextMonth") java.time.LocalDateTime startOfNextMonth
     );
 
     @Query("""
@@ -207,8 +210,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             group by u.id, u.username, u.firstName, u.lastName, tm.id, tm.name
             order by count(t) desc
             """)
-    List<UserWorkloadDto> countWorkloadByEmployeeForTeam(Long teamId);
-    
+    List<UserWorkloadDto> countWorkloadByEmployeeForTeam(@Param("teamId") Long teamId);
+
     @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
     @Query("""
             select t
@@ -258,7 +261,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             order by t.dueDate asc, t.priority desc
             """)
     List<Task> findClaimableTasksForTeams(@Param("teamIds") Collection<Long> teamIds);
-    
+
     @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
     @Query("""
             select t
@@ -282,4 +285,71 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             @Param("teamId") Long teamId,
             @Param("now") LocalDateTime now
     );
+
+    // ── Executive dashboard queries ──────────────────────────────────────────
+
+    @Query("""
+            select new apsoftware.operationsboard.dto.TeamMetricDto(
+                t.team.id,
+                t.team.name,
+                count(t)
+            )
+            from Task t
+            where t.status = apsoftware.operationsboard.enums.TaskStatus.OPEN
+            and t.assignedUser is null
+            group by t.team.id, t.team.name
+            order by count(t) desc
+            """)
+    List<TeamMetricDto> countUnassignedBacklogByTeam();
+
+    @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
+    @Query("""
+            select t
+            from Task t
+            where t.status = apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            and t.updatedAt <= :cutoff
+            order by t.updatedAt asc
+            """)
+    List<Task> findLongBlockedTasks(@Param("cutoff") LocalDateTime cutoff);
+
+    @Query("""
+            select YEAR(t.completedAt), MONTH(t.completedAt), count(t)
+            from Task t
+            where t.status = apsoftware.operationsboard.enums.TaskStatus.COMPLETE
+            and t.completedAt >= :startDate
+            group by YEAR(t.completedAt), MONTH(t.completedAt)
+            order by YEAR(t.completedAt) asc, MONTH(t.completedAt) asc
+            """)
+    List<Object[]> findCompletionTrend(@Param("startDate") LocalDateTime startDate);
+
+    @Query("""
+            select count(t)
+            from Task t
+            where t.dueDate is not null
+            and t.dueDate >= :today
+            and t.dueDate <= :dueBy
+            and t.status not in (
+                apsoftware.operationsboard.enums.TaskStatus.COMPLETE,
+                apsoftware.operationsboard.enums.TaskStatus.CANCELLED
+            )
+            """)
+    long countTotalDueSoon(
+            @Param("today") LocalDate today,
+            @Param("dueBy") LocalDate dueBy
+    );
+
+    @Query("""
+            select count(t)
+            from Task t
+            where t.priority = apsoftware.operationsboard.enums.PriorityLevel.CRITICAL
+            and t.status not in (
+                apsoftware.operationsboard.enums.TaskStatus.COMPLETE,
+                apsoftware.operationsboard.enums.TaskStatus.CANCELLED
+            )
+            and (
+                t.dueDate < :today
+                or t.status = apsoftware.operationsboard.enums.TaskStatus.BLOCKED
+            )
+            """)
+    long countCriticalRisk(@Param("today") LocalDate today);
 }
