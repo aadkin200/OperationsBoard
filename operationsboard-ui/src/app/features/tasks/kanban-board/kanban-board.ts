@@ -2,6 +2,8 @@ import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CdkDragDrop, DragDropModule, transferArrayItem } from '@angular/cdk/drag-drop';
 import { BlockerModal } from '../blocker-modal/blocker-modal';
+import { TaskDetail } from '../task-detail/task-detail';
+import { CreateTaskModal } from '../create-task-modal/create-task-modal';
 
 import {
   TaskBoardColumnDto,
@@ -14,7 +16,8 @@ import { TaskService } from '../../../core/services/task.service';
 
 @Component({
   selector: 'app-kanban-board',
-  imports: [DragDropModule, BlockerModal],
+  standalone: true,
+  imports: [DragDropModule, BlockerModal, TaskDetail, CreateTaskModal],
   templateUrl: './kanban-board.html',
   styleUrl: './kanban-board.scss',
 })
@@ -22,12 +25,15 @@ export class KanbanBoard implements OnInit {
   board = signal<TaskBoardDto | null>(null);
   loading = signal(false);
   errorMessage = signal<string | null>(null);
+  showCreateTaskModal = signal(false);
 
   columns = signal<TaskBoardColumnDto[]>([]);
 
   showBlockerModal = signal(false);
   pendingBlockedTask = signal<TaskDto | null>(null);
   pendingBlockedColumn = signal<TaskBoardColumnDto | null>(null);
+
+  selectedTaskId = signal<number | null>(null);
 
   constructor(
     private route: ActivatedRoute,
@@ -39,9 +45,12 @@ export class KanbanBoard implements OnInit {
     this.loadBoard(teamId);
   }
 
-  loadBoard(teamId: number): void {
+  loadBoard(teamId: number, clearError = true): void {
     this.loading.set(true);
-    this.errorMessage.set(null);
+
+    if (clearError) {
+      this.errorMessage.set(null);
+    }
 
     this.taskService.getTeamBoard(teamId).subscribe({
       next: (board) => {
@@ -69,6 +78,25 @@ export class KanbanBoard implements OnInit {
 
   dropListId(status: string): string {
     return `status-${status}`;
+  }
+
+  openTaskDetail(task: TaskDto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    this.selectedTaskId.set(task.id);
+  }
+
+  closeTaskDetail(): void {
+    this.selectedTaskId.set(null);
+  }
+
+  refreshBoardAfterTaskChange(): void {
+    const teamId = this.board()?.teamId;
+    if (teamId) {
+      this.loadBoard(teamId);
+    }
   }
 
   onTaskDropped(event: CdkDragDrop<TaskDto[]>, targetColumn: TaskBoardColumnDto): void {
@@ -110,80 +138,22 @@ export class KanbanBoard implements OnInit {
         targetColumn.count = targetColumn.tasks.length;
         this.columns.set([...this.columns()]);
       },
-      error: () => {
-        this.errorMessage.set('Unable to update task status.');
+      error: (error) => {
+        this.errorMessage.set(this.getBackendErrorMessage(error, 'Unable to update task status.'));
+
         const teamId = this.board()?.teamId;
         if (teamId) {
-          this.loadBoard(teamId);
+          this.loadBoard(teamId, false);
         }
       },
     });
   }
 
-  // onTaskDropped(event: CdkDragDrop<TaskDto[]>, targetColumn: TaskBoardColumnDto): void {
-  //   if (!targetColumn.dropEnabled || this.board()?.readOnly) {
-  //     return;
-  //   }
+  claimTask(task: TaskDto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
 
-  //   if (event.previousContainer === event.container) {
-  //     return;
-  //   }
-
-  //   const task = event.previousContainer.data[event.previousIndex];
-
-  //   transferArrayItem(
-  //     event.previousContainer.data,
-  //     event.container.data,
-  //     event.previousIndex,
-  //     event.currentIndex,
-  //   );
-
-  //   targetColumn.count = targetColumn.tasks.length;
-
-  //   let blockerReason: string | undefined;
-
-  //   if (targetColumn.key === 'BLOCKED') {
-  //     const reason = prompt('Why is this task blocked?');
-
-  //     if (!reason || reason.trim().length === 0) {
-  //       this.loadBoard(this.board()!.teamId);
-  //       return;
-  //     }
-
-  //     blockerReason = reason.trim();
-  //   }
-
-  //   if (targetColumn.key === 'BLOCKED') {
-  //     this.pendingBlockedTask.set(task);
-  //     this.pendingBlockedColumn.set(targetColumn);
-  //     this.showBlockerModal.set(true);
-  //     return;
-  //   }
-
-  //   this.taskService
-  //     .updateStatus(task.id, targetColumn.key as TaskStatus, blockerReason)
-  //     .subscribe({
-  //       next: (updatedTask) => {
-  //         const targetTasks = targetColumn.tasks;
-  //         const index = targetTasks.findIndex((t) => t.id === updatedTask.id);
-
-  //         if (index !== -1) {
-  //           targetTasks[index] = { ...updatedTask };
-  //         }
-
-  //         this.columns.set([...this.columns()]);
-  //       },
-  //       error: () => {
-  //         this.errorMessage.set('Unable to update task status.');
-  //         const teamId = this.board()?.teamId;
-  //         if (teamId) {
-  //           this.loadBoard(teamId);
-  //         }
-  //       },
-  //     });
-  // }
-
-  claimTask(task: TaskDto): void {
     this.taskService.claimTask(task.id).subscribe({
       next: () => {
         const teamId = this.board()?.teamId;
@@ -191,8 +161,8 @@ export class KanbanBoard implements OnInit {
           this.loadBoard(teamId);
         }
       },
-      error: () => {
-        this.errorMessage.set('Unable to claim task.');
+      error: (error) => {
+        this.errorMessage.set(this.getBackendErrorMessage(error, 'Unable to claim task.'));
       },
     });
   }
@@ -204,7 +174,7 @@ export class KanbanBoard implements OnInit {
 
     const teamId = this.board()?.teamId;
     if (teamId) {
-      this.loadBoard(teamId);
+      this.loadBoard(teamId, false);
     }
   }
 
@@ -232,10 +202,39 @@ export class KanbanBoard implements OnInit {
         this.pendingBlockedTask.set(null);
         this.pendingBlockedColumn.set(null);
       },
-      error: () => {
-        this.errorMessage.set('Unable to block task.');
+      error: (error) => {
+        this.errorMessage.set(this.getBackendErrorMessage(error, 'Unable to block task.'));
         this.cancelBlockerModal();
       },
     });
+  }
+
+  openCreateTaskModal(): void {
+    this.showCreateTaskModal.set(true);
+  }
+
+  closeCreateTaskModal(): void {
+    this.showCreateTaskModal.set(false);
+  }
+
+  taskCreated(): void {
+    this.showCreateTaskModal.set(false);
+
+    const teamId = this.board()?.teamId;
+    if (teamId) {
+      this.loadBoard(teamId);
+    }
+  }
+
+  private getBackendErrorMessage(error: any, fallback: string): string {
+    if (typeof error?.error === 'string') {
+      return error.error;
+    }
+
+    return error?.error?.message || error?.error?.error || error?.message || fallback;
+  }
+
+  dismissError(): void {
+    this.errorMessage.set(null);
   }
 }

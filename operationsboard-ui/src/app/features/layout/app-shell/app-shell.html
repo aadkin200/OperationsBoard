@@ -28,6 +28,10 @@
                       <a [routerLink]="['/team', team.teamId, 'board']" routerLinkActive="active">
                         Board
                       </a>
+
+                      <a [routerLink]="['/team', team.teamId, 'tree']" routerLinkActive="active">
+                        Tree
+                      </a>
                     }
 
                     @if (team.canViewMetrics) {

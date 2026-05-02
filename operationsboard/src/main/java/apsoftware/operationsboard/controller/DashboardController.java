@@ -2,6 +2,7 @@ package apsoftware.operationsboard.controller;
 
 import apsoftware.operationsboard.dto.DashboardSummaryDto;
 import apsoftware.operationsboard.dto.ExecutiveDashboardDto;
+import apsoftware.operationsboard.dto.ExecutiveDrilldownDto;
 import apsoftware.operationsboard.dto.MemberDashboardDto;
 import apsoftware.operationsboard.dto.TeamDashboardDto;
 import apsoftware.operationsboard.security.CurrentUserService;
@@ -24,6 +25,12 @@ public class DashboardController {
     public ExecutiveDashboardDto getExecutiveDashboard() {
         Long currentUserId = currentUserService.getCurrentUserId();
         return dashboardService.getExecutiveDashboard(currentUserId);
+    }
+
+    @GetMapping("/executive/drilldown")
+    public ExecutiveDrilldownDto getExecutiveDrilldown(@RequestParam String type) {
+        Long currentUserId = currentUserService.getCurrentUserId();
+        return dashboardService.getExecutiveDrilldown(currentUserId, type);
     }
 
     @GetMapping("/summary")

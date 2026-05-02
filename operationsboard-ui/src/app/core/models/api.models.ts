@@ -34,6 +34,26 @@ export interface TaskDto {
   updatedAt: string;
 }
 
+export interface CommentDto {
+  id: number;
+  taskId: number;
+  user: UserDto;
+  type: CommentType;
+  message: string;
+  createdAt: string;
+}
+
+export interface TaskAuditDto {
+  id: number;
+  taskId: number;
+  changedBy: UserDto;
+  action: string;
+  fieldName: string;
+  oldValue: string | null;
+  newValue: string | null;
+  createdAt: string;
+}
+
 export interface TaskBoardColumnDto {
   key: TaskStatus;
   label: string;
@@ -94,6 +114,13 @@ export interface EscalationItemDto {
   dueDate: string | null;
 }
 
+export interface LeadershipActionDto {
+  severity: string;
+  category: string;
+  teamName: string;
+  message: string;
+}
+
 export interface CompletionTrendDto {
   year: number;
   month: number;
@@ -114,6 +141,7 @@ export interface ExecutiveDashboardDto {
   completionTrend: CompletionTrendDto[];
   teamHealth: TeamHealthDto[];
   escalationQueue: EscalationItemDto[];
+  leadershipActions: LeadershipActionDto[];
   workloadByEmployee: UserWorkloadDto[];
   unassignedBacklogByTeam: TeamMetricDto[];
 }
@@ -170,4 +198,44 @@ export interface SidebarTeamDto {
   canViewBoard: boolean;
   canViewMetrics: boolean;
   executiveView: boolean;
+}
+
+export interface TaskCreateRequest {
+  teamId: number;
+  title: string;
+  description: string;
+  priority: PriorityLevel;
+  dueDate: string | null;
+  assignedUserId: number | null;
+}
+
+export interface MembershipDto {
+  id: number;
+  user: UserDto;
+  team: TeamDto;
+  role: MembershipRole;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface TaskAssignRequest {
+  assigneeUserId: number;
+}
+
+export interface ExecutiveDrilldownDto {
+  type: string;
+  title: string;
+  subtitle: string;
+  tasks: TaskDto[];
+}
+
+export interface TaskTreeNodeDto {
+  task: TaskDto;
+  children: TaskTreeNodeDto[];
+}
+
+export interface TaskTreeDto {
+  teamId: number;
+  teamName: string;
+  roots: TaskTreeNodeDto[];
 }

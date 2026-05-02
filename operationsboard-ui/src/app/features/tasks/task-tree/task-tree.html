@@ -1,0 +1,106 @@
+@if (loading()) {
+  <div class="loading-state">Loading task tree...</div>
+}
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+
+@if (tree(); as tree) {
+  <section class="tree-page">
+    <header class="tree-header">
+      <div>
+        <div class="eyebrow">Visual Work Tree MVP</div>
+        <h1>{{ tree.teamName }} Task Tree</h1>
+        <p>Early visual hierarchy for related operational work. Canvas-style graph comes later.</p>
+      </div>
+
+      <button type="button" class="back-button" (click)="goToBoard()">Back to Board</button>
+    </header>
+
+    <div class="tree-summary">
+      <span>
+        <strong>{{ totalNodes() }}</strong>
+        visible node{{ totalNodes() === 1 ? '' : 's' }}
+      </span>
+
+      <span>
+        <strong>{{ tree.roots.length }}</strong>
+        root item{{ tree.roots.length === 1 ? '' : 's' }}
+      </span>
+    </div>
+
+    @if (tree.roots.length === 0) {
+      <div class="empty-state">No tasks available for this tree.</div>
+    } @else {
+      <div class="tree-canvas">
+        @for (root of tree.roots; track root.task.id) {
+          <ng-container *ngTemplateOutlet="nodeTemplate; context: { node: root, depth: 0 }">
+          </ng-container>
+        }
+      </div>
+    }
+  </section>
+
+  @if (selectedTaskId()) {
+    <app-task-detail
+      [taskId]="selectedTaskId()"
+      [canManage]="false"
+      [readOnly]="true"
+      (close)="closeTask()"
+    ></app-task-detail>
+  }
+}
+
+<ng-template #nodeTemplate let-node="node" let-depth="depth">
+  <div class="tree-node-wrap" [style.margin-left.px]="depth * 44">
+    <button type="button" class="node-card" (click)="openTask(node.task.id)">
+      <div class="node-card-top">
+        <div class="node-title">
+          @if (hasChildren(node)) {
+            <button type="button" class="collapse-button" (click)="toggleNode(node, $event)">
+              {{ isCollapsed(node) ? '+' : '−' }}
+            </button>
+          } @else {
+            <span class="collapse-spacer"></span>
+          }
+
+          <strong>{{ node.task.title }}</strong>
+        </div>
+
+        <span class="priority-pill" [class]="priorityClass(node.task.priority)">
+          {{ node.task.priority }}
+        </span>
+      </div>
+
+      <div class="node-meta">
+        <span class="status-pill" [class]="statusClass(node.task.status)">
+          {{ node.task.status }}
+        </span>
+
+        <span>{{ assigneeLabel(node) }}</span>
+
+        @if (node.task.dueDate) {
+          <span>Due {{ node.task.dueDate }}</span>
+        }
+      </div>
+
+      @if (node.task.blockerReason) {
+        <div class="node-blocker">
+          {{ node.task.blockerReason }}
+        </div>
+      }
+    </button>
+
+    @if (hasChildren(node) && !isCollapsed(node)) {
+      <div class="children-lane">
+        @for (child of node.children; track child.task.id) {
+          <ng-container
+            *ngTemplateOutlet="nodeTemplate; context: { node: child, depth: depth + 1 }"
+          >
+          </ng-container>
+        }
+      </div>
+    }
+  </div>
+</ng-template>

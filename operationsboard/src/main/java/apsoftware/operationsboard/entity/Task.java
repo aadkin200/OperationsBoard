@@ -19,6 +19,10 @@ public class Task {
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_task_id")
+    private Task parentTask;
+
     @Column(nullable = false, length = 255)
     private String title;
 
@@ -102,6 +106,14 @@ public class Task {
 
     public void setTeam(Team team) {
         this.team = team;
+    }
+
+    public Task getParentTask() {
+        return parentTask;
+    }
+
+    public void setParentTask(Task parentTask) {
+        this.parentTask = parentTask;
     }
 
     public String getTitle() {

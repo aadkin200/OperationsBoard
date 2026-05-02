@@ -4,7 +4,11 @@
 
 @if (errorMessage()) {
   <div class="error">
-    {{ errorMessage() }}
+    <span>{{ errorMessage() }}</span>
+
+    <button type="button" class="error-close" (click)="dismissError()" aria-label="Dismiss error">
+      ×
+    </button>
   </div>
 }
 
@@ -33,6 +37,12 @@
       @if (board()?.readOnly) {
         <span>Executive read-only</span>
       }
+
+      @if (board()?.canCreateTasks && !board()?.readOnly) {
+        <button type="button" class="create-task-button" (click)="openCreateTaskModal()">
+          Create Task
+        </button>
+      }
     </div>
   </section>
 
@@ -54,7 +64,12 @@
           (cdkDropListDropped)="onTaskDropped($event, column)"
         >
           @for (task of column.tasks; track task.id) {
-            <article class="task-card" cdkDrag [cdkDragDisabled]="board()?.readOnly">
+            <article
+              class="task-card"
+              cdkDrag
+              [cdkDragDisabled]="board()?.readOnly"
+              (click)="openTaskDetail(task, $event)"
+            >
               <div class="task-card-header">
                 <strong>{{ task.title }}</strong>
                 <span
@@ -84,9 +99,15 @@
                 <div class="blocker">Blocked: {{ task.blockerReason }}</div>
               }
 
-              @if (task.status === 'OPEN' && board()?.canClaimTasks && !board()?.readOnly) {
-                <button type="button" (click)="claimTask(task)">Claim</button>
-              }
+              <div class="card-actions">
+                <button type="button" class="details-button" (click)="openTaskDetail(task, $event)">
+                  Details
+                </button>
+
+                @if (task.status === 'OPEN' && board()?.canClaimTasks && !board()?.readOnly) {
+                  <button type="button" (click)="claimTask(task, $event)">Claim</button>
+                }
+              </div>
             </article>
           }
         </div>
@@ -100,4 +121,22 @@
     (cancel)="cancelBlockerModal()"
     (submitReason)="submitBlockerReason($event)"
   ></app-blocker-modal>
+}
+
+@if (selectedTaskId()) {
+  <app-task-detail
+    [taskId]="selectedTaskId()"
+    [canManage]="board()?.canManageBoard || false"
+    [readOnly]="board()?.readOnly || false"
+    (close)="closeTaskDetail()"
+    (taskChanged)="refreshBoardAfterTaskChange()"
+  ></app-task-detail>
+}
+
+@if (showCreateTaskModal() && board()) {
+  <app-create-task-modal
+    [teamId]="board()!.teamId"
+    (close)="closeCreateTaskModal()"
+    (created)="taskCreated()"
+  ></app-create-task-modal>
 }

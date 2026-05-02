@@ -17,6 +17,7 @@ public class ExecutiveDashboardDto {
     private List<CompletionTrendDto> completionTrend;
     private List<TeamHealthDto> teamHealth;
     private List<EscalationItemDto> escalationQueue;
+    private List<LeadershipActionDto> leadershipActions;
     private List<UserWorkloadDto> workloadByEmployee;
     private List<TeamMetricDto> unassignedBacklogByTeam;
 
@@ -117,6 +118,14 @@ public class ExecutiveDashboardDto {
 
     public void setEscalationQueue(List<EscalationItemDto> escalationQueue) {
         this.escalationQueue = escalationQueue;
+    }
+
+    public List<LeadershipActionDto> getLeadershipActions() {
+        return leadershipActions;
+    }
+
+    public void setLeadershipActions(List<LeadershipActionDto> leadershipActions) {
+        this.leadershipActions = leadershipActions;
     }
 
     public List<UserWorkloadDto> getWorkloadByEmployee() {

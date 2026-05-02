@@ -3,12 +3,13 @@ import { Injectable } from '@angular/core';
 import {
   DashboardSummaryDto,
   ExecutiveDashboardDto,
+  ExecutiveDrilldownDto,
   MemberDashboardDto,
-  TeamDashboardDto
+  TeamDashboardDto,
 } from '../models/api.models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DashboardService {
   private readonly baseUrl = 'http://localhost:8080/api/dashboard';
@@ -25,6 +26,12 @@ export class DashboardService {
 
   getExecutiveDashboard() {
     return this.http.get<ExecutiveDashboardDto>(`${this.baseUrl}/executive`);
+  }
+
+  getExecutiveDrilldown(type: string) {
+    return this.http.get<ExecutiveDrilldownDto>(`${this.baseUrl}/executive/drilldown`, {
+      params: { type },
+    });
   }
 
   getDashboardSummary() {

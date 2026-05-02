@@ -251,7 +251,17 @@ public class TaskService {
             throw new BadRequestException("Blocker reason is required when blocking a task.");
         }
 
+//        if (newStatus == TaskStatus.COMPLETE) {
+//            task.setCompletedAt(LocalDateTime.now());
+//            task.setHiddenAfter(LocalDateTime.now().plusDays(7));
+//        } else if (newStatus != TaskStatus.OPEN) {
+//            task.setCompletedAt(null);
+//            task.setHiddenAfter(null);
+//        }
+        
         if (newStatus == TaskStatus.COMPLETE) {
+            validateParentCanBeCompleted(task);
+
             task.setCompletedAt(LocalDateTime.now());
             task.setHiddenAfter(LocalDateTime.now().plusDays(7));
         } else if (newStatus != TaskStatus.OPEN) {
@@ -431,5 +441,30 @@ public class TaskService {
     private Task getTask(Long taskId) {
         return taskRepository.findByIdWithDetails(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
+    }
+    
+    private void validateParentCanBeCompleted(Task task) {
+        long incompleteChildren = taskRepository.countIncompleteDirectChildren(task.getId());
+
+        if (incompleteChildren == 0) {
+            return;
+        }
+
+        List<Task> blockingChildren = taskRepository.findIncompleteDirectChildren(task.getId());
+
+        String blockingTitles = blockingChildren.stream()
+                .limit(3)
+                .map(Task::getTitle)
+                .toList()
+                .toString();
+
+        throw new BadRequestException(
+                "This task cannot be completed because it has "
+                        + incompleteChildren
+                        + " incomplete child task"
+                        + (incompleteChildren == 1 ? "" : "s")
+                        + ". Complete or cancel child work first: "
+                        + blockingTitles
+        );
     }
 }

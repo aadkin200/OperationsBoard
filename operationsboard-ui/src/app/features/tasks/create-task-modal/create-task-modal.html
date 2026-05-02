@@ -1,0 +1,93 @@
+<div class="modal-backdrop" (click)="closeModal()">
+  <section class="create-task-modal" (click)="stopClick($event)">
+    <button type="button" class="close-button" (click)="closeModal()">×</button>
+
+    <header>
+      <div class="eyebrow">Manager Action</div>
+      <h1>Create Task</h1>
+      <p>Create a new task for this team board.</p>
+    </header>
+
+    @if (errorMessage()) {
+      <div class="error-banner">{{ errorMessage() }}</div>
+    }
+
+    <form (ngSubmit)="submit()">
+      <label>
+        Title
+        <input
+          type="text"
+          name="title"
+          [(ngModel)]="title"
+          placeholder="Enter task title"
+          required
+        />
+      </label>
+
+      <label>
+        Description
+        <textarea
+          name="description"
+          [(ngModel)]="description"
+          placeholder="Describe the work"
+          rows="5"
+        >
+        </textarea>
+      </label>
+
+      <div class="form-row">
+        <label>
+          Priority
+          <select name="priority" [(ngModel)]="priority">
+            <option value="LOW">Low</option>
+            <option value="NORMAL">Normal</option>
+            <option value="HIGH">High</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+        </label>
+
+        <label>
+          Due Date
+          <input type="date" name="dueDate" [(ngModel)]="dueDate" />
+        </label>
+      </div>
+
+      <label>
+        Assign To
+        <select
+          name="assignedUserId"
+          [(ngModel)]="selectedAssignedUserId"
+          [disabled]="loadingMembers()"
+        >
+          <option value="">Unassigned</option>
+
+          @for (membership of teamMembers(); track membership.id) {
+            <option [value]="membership.user.id">
+              {{ membership.user.firstName }} {{ membership.user.lastName }} — {{ membership.role }}
+            </option>
+          }
+        </select>
+      </label>
+
+      @if (loadingMembers()) {
+        <p class="helper-text">Loading team members...</p>
+      } @else if (teamMembers().length === 0) {
+        <p class="helper-text">No active team members found.</p>
+      }
+
+      <div class="actions">
+        <button type="button" class="secondary" (click)="closeModal()" [disabled]="saving()">
+          Cancel
+        </button>
+
+        <button type="submit" class="primary" [disabled]="saving() || !title.trim()">
+          @if (saving()) {
+            Creating...
+          } @else {
+            Create Task
+          }
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

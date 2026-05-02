@@ -352,4 +352,28 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             )
             """)
     long countCriticalRisk(@Param("today") LocalDate today);
+    
+    @Query("""
+            select count(t)
+            from Task t
+            where t.parentTask.id = :parentTaskId
+            and t.status not in (
+                apsoftware.operationsboard.enums.TaskStatus.COMPLETE,
+                apsoftware.operationsboard.enums.TaskStatus.CANCELLED
+            )
+            """)
+    long countIncompleteDirectChildren(@Param("parentTaskId") Long parentTaskId);
+
+    @EntityGraph(attributePaths = {"team", "createdBy", "assignedUser"})
+    @Query("""
+            select t
+            from Task t
+            where t.parentTask.id = :parentTaskId
+            and t.status not in (
+                apsoftware.operationsboard.enums.TaskStatus.COMPLETE,
+                apsoftware.operationsboard.enums.TaskStatus.CANCELLED
+            )
+            order by t.createdAt asc
+            """)
+    List<Task> findIncompleteDirectChildren(@Param("parentTaskId") Long parentTaskId);
 }

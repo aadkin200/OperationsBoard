@@ -1,1 +1,297 @@
-<p>task-detail works!</p>
+<div class="modal-backdrop" (click)="closeModal()">
+  <section class="task-detail-modal" (click)="stopClick($event)">
+    <button type="button" class="close-button" (click)="closeModal()">×</button>
+
+    @if (loading()) {
+      <div class="loading-state">Loading task details...</div>
+    }
+
+    @if (errorMessage()) {
+      <div class="error-banner">{{ errorMessage() }}</div>
+    }
+
+    @if (task(); as task) {
+      <header class="detail-header">
+        <div>
+          <div class="eyebrow">{{ task.teamName }}</div>
+          <h1>{{ task.title }}</h1>
+        </div>
+
+        <div class="status-stack">
+          <span class="status-pill" [class]="task.status.toLowerCase()">{{ task.status }}</span>
+          <span class="priority-pill" [class]="task.priority.toLowerCase()">{{
+            task.priority
+          }}</span>
+        </div>
+      </header>
+
+      <div class="detail-grid">
+        <section class="main-panel">
+          <h2>Description</h2>
+          <p class="description">
+            {{ task.description || 'No description provided.' }}
+          </p>
+
+          @if (task.blockerReason) {
+            <div class="blocker-box">
+              <strong>Blocker</strong>
+              <p>{{ task.blockerReason }}</p>
+            </div>
+          }
+
+          @if (canManage && !readOnly) {
+            <section class="manager-actions-panel">
+              <h2>Manager Actions</h2>
+
+              <div class="action-grid">
+                @if (task.status === 'OPEN') {
+                  <button type="button" (click)="claimTask()" [disabled]="savingAction()">
+                    Claim
+                  </button>
+                }
+
+                @if (task.assignedUser && task.status !== 'OPEN') {
+                  <button type="button" (click)="unclaimTask()" [disabled]="savingAction()">
+                    Unclaim
+                  </button>
+                }
+
+                @if (
+                  task.status !== 'IN_PROGRESS' &&
+                  task.status !== 'COMPLETE' &&
+                  task.status !== 'CANCELLED'
+                ) {
+                  <button
+                    type="button"
+                    (click)="moveToStatus('IN_PROGRESS')"
+                    [disabled]="savingAction()"
+                  >
+                    Move to In Progress
+                  </button>
+                }
+
+                @if (task.status !== 'COMPLETE' && task.status !== 'CANCELLED') {
+                  <button
+                    type="button"
+                    class="success"
+                    (click)="moveToStatus('COMPLETE')"
+                    [disabled]="savingAction()"
+                  >
+                    Complete
+                  </button>
+                }
+
+                @if (task.status === 'COMPLETE' || task.status === 'CANCELLED') {
+                  <button type="button" (click)="reopenTask()" [disabled]="savingAction()">
+                    Reopen
+                  </button>
+                }
+
+                @if (task.status !== 'CANCELLED' && task.status !== 'COMPLETE') {
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="cancelTask()"
+                    [disabled]="savingAction()"
+                  >
+                    Cancel
+                  </button>
+                }
+              </div>
+
+              @if (
+                task.status !== 'BLOCKED' &&
+                task.status !== 'COMPLETE' &&
+                task.status !== 'CANCELLED'
+              ) {
+                <div class="block-task-box">
+                  <label>
+                    Blocker Reason
+                    <textarea
+                      [(ngModel)]="blockerReason"
+                      rows="3"
+                      placeholder="Explain what is blocking this task"
+                    >
+                    </textarea>
+                  </label>
+
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="moveToStatus('BLOCKED')"
+                    [disabled]="savingAction() || !blockerReason.trim()"
+                  >
+                    Move to Blocked
+                  </button>
+                </div>
+              }
+
+              @if (savingAction()) {
+                <p class="helper-text">Updating task...</p>
+              }
+            </section>
+
+            <section class="assignment-panel">
+              <h2>Manager Assignment</h2>
+
+              <div class="assignment-row">
+                <label>
+                  Assigned User
+                  <select
+                    [(ngModel)]="selectedAssignedUserId"
+                    [disabled]="loadingMembers() || savingAssignment()"
+                  >
+                    <option value="">Unassigned</option>
+
+                    @for (membership of teamMembers(); track membership.id) {
+                      <option [value]="membership.user.id">
+                        {{ membership.user.firstName }} {{ membership.user.lastName }} —
+                        {{ membership.role }}
+                      </option>
+                    }
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  class="assignment-save"
+                  (click)="saveAssignment()"
+                  [disabled]="savingAssignment() || loadingMembers() || !assignmentChanged()"
+                >
+                  @if (savingAssignment()) {
+                    Saving...
+                  } @else {
+                    Save Assignment
+                  }
+                </button>
+              </div>
+
+              @if (loadingMembers()) {
+                <p class="helper-text">Loading team members...</p>
+              } @else if (teamMembers().length === 0) {
+                <p class="helper-text">No active team members found.</p>
+              }
+            </section>
+          }
+
+          <div class="metadata-grid">
+            <div>
+              <span>Assigned To</span>
+              <strong>
+                {{
+                  task.assignedUser
+                    ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName
+                    : 'Unassigned'
+                }}
+              </strong>
+            </div>
+
+            <div>
+              <span>Created By</span>
+              <strong>{{ task.createdBy.firstName }} {{ task.createdBy.lastName }}</strong>
+            </div>
+
+            <div>
+              <span>Due Date</span>
+              <strong>{{ task.dueDate || 'None' }}</strong>
+            </div>
+
+            <div>
+              <span>Created</span>
+              <strong>{{ task.createdAt | date: 'short' }}</strong>
+            </div>
+
+            <div>
+              <span>Updated</span>
+              <strong>{{ task.updatedAt | date: 'short' }}</strong>
+            </div>
+
+            <div>
+              <span>Completed</span>
+              <strong>{{
+                task.completedAt ? (task.completedAt | date: 'short') : 'Not complete'
+              }}</strong>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-panel">
+          <h2>Comments</h2>
+
+          <div class="comment-form">
+            <textarea
+              [(ngModel)]="newComment"
+              placeholder="Add a comment..."
+              rows="4"
+              [disabled]="readOnly && !canManage"
+            >
+            </textarea>
+
+            <label class="blocker-toggle">
+              <input type="checkbox" [(ngModel)]="blockerCommentMode" />
+              Blocker comment
+            </label>
+
+            <button
+              type="button"
+              (click)="submitComment()"
+              [disabled]="savingComment() || !newComment.trim()"
+            >
+              @if (savingComment()) {
+                Saving...
+              } @else {
+                Add Comment
+              }
+            </button>
+          </div>
+
+          <div class="comments-list">
+            @if (comments().length === 0) {
+              <p class="empty-state">No comments yet.</p>
+            }
+
+            @for (comment of comments(); track comment.id) {
+              <article class="comment" [class]="comment.type.toLowerCase()">
+                <div class="comment-top">
+                  <strong>{{ fullName(comment.user) }}</strong>
+                  <span>{{ comment.createdAt | date: 'short' }}</span>
+                </div>
+
+                <div class="comment-type">{{ comment.type }}</div>
+                <p>{{ comment.message }}</p>
+              </article>
+            }
+          </div>
+        </aside>
+      </div>
+
+      <section class="audit-panel">
+        <h2>Audit History</h2>
+
+        @if (audit().length === 0) {
+          <p class="empty-state">No audit events yet.</p>
+        }
+
+        <div class="audit-list">
+          @for (item of audit(); track item.id) {
+            <div class="audit-item">
+              <div class="audit-dot"></div>
+              <div>
+                <strong>{{ auditText(item) }}</strong>
+                <span>{{ item.createdAt | date: 'short' }}</span>
+
+                @if (item.oldValue || item.newValue) {
+                  <p>
+                    {{ item.oldValue || 'None' }}
+                    →
+                    {{ item.newValue || 'None' }}
+                  </p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  </section>
+</div>

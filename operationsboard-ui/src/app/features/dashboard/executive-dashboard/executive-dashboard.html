@@ -10,158 +10,303 @@
 }
 
 @if (dashboard(); as data) {
-
   <div class="exec-dashboard">
-
-    <!-- Header -->
     <div class="exec-header">
       <div>
-        <h1>Operations Executive Dashboard</h1>
-        <p>Organization-wide operational visibility</p>
+        <div class="page-eyebrow">Executive Operations View</div>
+        <h1>Operational Readiness Dashboard</h1>
+        <p>Organization-wide workload, risk, capacity, and delivery posture.</p>
       </div>
+
       <div class="header-actions">
-        <span class="header-timestamp">As of {{ today | date:'mediumDate' }}</span>
+        <span class="header-timestamp">As of {{ today | date: 'mediumDate' }}</span>
         <div class="export-buttons">
-          <button class="btn-export btn-excel" (click)="downloadExcel()" [disabled]="downloadingExcel()">
-            @if (downloadingExcel()) { Generating... } @else { Export Excel }
+          <button
+            class="btn-export btn-excel"
+            (click)="downloadExcel()"
+            [disabled]="downloadingExcel()"
+          >
+            @if (downloadingExcel()) {
+              Generating...
+            } @else {
+              Export Excel
+            }
           </button>
           <button class="btn-export btn-pdf" (click)="downloadPdf()" [disabled]="downloadingPdf()">
-            @if (downloadingPdf()) { Generating... } @else { Export PDF }
+            @if (downloadingPdf()) {
+              Generating...
+            } @else {
+              Export PDF
+            }
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="summary-cards">
-      <div class="card card-blue">
-        <div class="card-value">{{ data.totalActiveTasks }}</div>
-        <div class="card-label">Active Tasks</div>
+    <section class="readiness-hero" [class]="readinessLevel">
+      <div class="readiness-score">
+        <div class="score-value">{{ readinessScore }}</div>
+        <div class="score-label">Readiness Score</div>
       </div>
-      <div class="card" [class.card-red]="data.totalBlocked > 0" [class.card-neutral]="data.totalBlocked === 0">
-        <div class="card-value">{{ data.totalBlocked }}</div>
-        <div class="card-label">Blocked</div>
-      </div>
-      <div class="card" [class.card-red]="data.totalOverdue > 0" [class.card-neutral]="data.totalOverdue === 0">
-        <div class="card-value">{{ data.totalOverdue }}</div>
-        <div class="card-label">Overdue</div>
-      </div>
-      <div class="card" [class.card-yellow]="data.totalDueSoon > 0" [class.card-neutral]="data.totalDueSoon === 0">
-        <div class="card-value">{{ data.totalDueSoon }}</div>
-        <div class="card-label">Due in 7 Days</div>
-      </div>
-      <div class="card" [class.card-red]="data.totalCriticalRisk > 0" [class.card-neutral]="data.totalCriticalRisk === 0">
-        <div class="card-value">{{ data.totalCriticalRisk }}</div>
-        <div class="card-label">Critical Risk</div>
-      </div>
-      <div class="card" [class.card-yellow]="data.totalUnassigned > 0" [class.card-neutral]="data.totalUnassigned === 0">
-        <div class="card-value">{{ data.totalUnassigned }}</div>
-        <div class="card-label">Unassigned</div>
-      </div>
-      <div class="card card-green">
-        <div class="card-value">{{ data.completedThisMonth }}</div>
-        <div class="card-label">Completed This Month</div>
-      </div>
-    </div>
 
-    <!-- Charts Row -->
+      <div class="readiness-content">
+        <div class="summary-eyebrow">Operational Readiness Overview</div>
+        <h2>{{ readinessLabel }}</h2>
+        <p>{{ readinessNarrative }}</p>
+
+        <div class="readiness-points">
+          <button
+            type="button"
+            (click)="highestRiskTeam && goToTeamMetrics(highestRiskTeam.teamId)"
+          >
+            Highest Risk:
+            <strong>{{ highestRiskTeam?.teamName || 'None' }}</strong>
+          </button>
+
+          <button
+            type="button"
+            (click)="highestWorkloadTeam && goToTeamMetrics(highestWorkloadTeam.teamId)"
+          >
+            Highest Workload:
+            <strong>{{ highestWorkloadTeam?.teamName || 'None' }}</strong>
+          </button>
+
+          <button
+            type="button"
+            (click)="mostBlockedTeam && goToTeamMetrics(mostBlockedTeam.teamId)"
+          >
+            Most Blocked:
+            <strong>{{ mostBlockedTeam?.teamName || 'None' }}</strong>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="summary-cards refined">
+      @for (card of operationalSummaryCards; track card.label) {
+        <button
+          type="button"
+          class="card clickable-card"
+          [class]="'card-' + card.tone"
+          (click)="goToExecutiveDrilldown(card.type)"
+        >
+          <div class="card-value">{{ card.value }}</div>
+          <div class="card-label">{{ card.label }}</div>
+          <div class="card-caption">{{ card.caption }}</div>
+        </button>
+      }
+    </section>
+
+    <section class="panel decision-panel">
+      <div class="panel-heading">
+        <div>
+          <div class="section-eyebrow">Executive Intervention</div>
+          <h2>Decisions Required</h2>
+          <p>
+            Highest-priority operational items that may need leadership awareness, direction, or
+            escalation.
+          </p>
+        </div>
+      </div>
+
+      @if (executiveDecisionItems.length === 0) {
+        <p class="empty-state">No executive intervention items detected.</p>
+      } @else {
+        <div class="decision-list">
+          @for (action of executiveDecisionItems; track action.message) {
+            <article class="decision-card" [class]="actionClass(action.severity)">
+              <div class="decision-severity">{{ action.severity }}</div>
+
+              <div class="decision-body">
+                <div class="decision-category">{{ action.category }}</div>
+                <h3>{{ action.teamName }}</h3>
+                <p>{{ action.message }}</p>
+                <div class="recommendation">{{ actionRecommendation(action) }}</div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="panel wide">
+      <div class="panel-heading">
+        <div>
+          <div class="section-eyebrow">Organizational Pressure</div>
+          <h2>Team Health Matrix</h2>
+          <p>
+            Unified view of workload, blockers, overdue work, unassigned backlog, and monthly
+            throughput.
+          </p>
+        </div>
+      </div>
+
+      <table class="health-table matrix">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Health</th>
+            <th>Active</th>
+            <th>Blocked</th>
+            <th>Overdue</th>
+            <th>Unassigned</th>
+            <th>Completed</th>
+            <th>Open</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (team of sortedTeamHealth; track team.teamId) {
+            <tr>
+              <td class="team-name">
+                <button type="button" class="team-link" (click)="goToTeamMetrics(team.teamId)">
+                  {{ team.teamName }}
+                </button>
+              </td>
+              <td>
+                <button type="button" class="health-action" (click)="goToTeamMetrics(team.teamId)">
+                  <span class="health-badge" [class]="healthClass(team.healthStatus)">
+                    {{ healthLabel(team.healthStatus) }}
+                  </span>
+                </button>
+              </td>
+              <td>
+                <button type="button" class="matrix-action" (click)="goToTeamBoard(team.teamId)">
+                  <span class="pressure-chip" [class]="pressureClass(team.openCount)">
+                    {{ team.openCount }}
+                  </span>
+                </button>
+              </td>
+              <td>
+                <button type="button" class="matrix-action" (click)="goToTeamBoard(team.teamId)">
+                  <span class="pressure-chip" [class]="pressureClass(team.blockedCount)">
+                    {{ team.blockedCount }}
+                  </span>
+                </button>
+              </td>
+              <td>
+                <button type="button" class="matrix-action" (click)="goToTeamBoard(team.teamId)">
+                  <span class="pressure-chip" [class]="pressureClass(team.overdueCount)">
+                    {{ team.overdueCount }}
+                  </span>
+                </button>
+              </td>
+              <td>
+                <button type="button" class="matrix-action" (click)="goToTeamBoard(team.teamId)">
+                  <span class="pressure-chip" [class]="pressureClass(team.unassignedCount)">
+                    {{ team.unassignedCount }}
+                  </span>
+                </button>
+              </td>
+              <td>
+                <span class="pressure-chip pressure-good">
+                  {{ team.completedThisMonth }}
+                </span>
+              </td>
+              <td>
+                <button type="button" class="open-board-link" (click)="goToTeamBoard(team.teamId)">
+                  Board
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
     <div class="charts-row">
-      <div class="chart-panel">
-        <h2>Active Workload by Team</h2>
+      <div class="chart-panel large-chart">
+        <div class="panel-heading">
+          <div>
+            <div class="section-eyebrow">Capacity</div>
+            <h2>Active Workload by Team</h2>
+            <p>Current workload distribution across teams.</p>
+          </div>
+        </div>
         <div class="chart-wrap">
           <canvas #chartCanvas id="workloadChart"></canvas>
         </div>
       </div>
-      <div class="chart-panel">
-        <h2>Completion Trend (Last 3 Months)</h2>
+
+      <div class="chart-panel large-chart">
+        <div class="panel-heading">
+          <div>
+            <div class="section-eyebrow">Throughput</div>
+            <h2>Completion Trend</h2>
+            <p>Completed work over the recent reporting period.</p>
+          </div>
+        </div>
         <div class="chart-wrap">
           <canvas #chartCanvas id="trendChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Team Health Scorecard -->
-    <div class="panel wide">
-      <h2>Team Health Scorecard</h2>
-      <table class="health-table">
-        <thead>
-          <tr>
-            <th>Team</th>
-            <th>Status</th>
-            <th>Active</th>
-            <th>Blocked</th>
-            <th>Overdue</th>
-            <th>Unassigned</th>
-            <th>Completed This Month</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (team of sortedTeamHealth; track team.teamId) {
-            <tr [class]="healthClass(team.healthStatus)">
-              <td class="team-name">{{ team.teamName }}</td>
-              <td>
-                <span class="health-badge" [class]="healthClass(team.healthStatus)">
-                  {{ healthLabel(team.healthStatus) }}
-                </span>
-              </td>
-              <td>{{ team.openCount }}</td>
-              <td [class.danger-cell]="team.blockedCount > 0">{{ team.blockedCount }}</td>
-              <td [class.danger-cell]="team.overdueCount > 0">{{ team.overdueCount }}</td>
-              <td [class.warn-cell]="team.unassignedCount >= 3">{{ team.unassignedCount }}</td>
-              <td class="positive-cell">{{ team.completedThisMonth }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Escalation Queue + Single Points of Failure -->
     <div class="two-col-row">
-
       <div class="panel">
-        <h2>
-          Escalation Queue
-          <span class="panel-subtitle">Blocked 7+ days</span>
-        </h2>
+        <div class="panel-heading">
+          <div>
+            <div class="section-eyebrow">Escalation</div>
+            <h2>Long-Blocked Work</h2>
+            <p>Click an item to review task owner, comments, blocker reason, and audit history.</p>
+          </div>
+        </div>
+
         @if (sortedEscalations.length === 0) {
           <p class="empty-state">No long-blocked tasks. Good standing.</p>
         }
+
         @for (item of sortedEscalations; track item.taskId) {
-          <div class="escalation-item">
+          <button
+            type="button"
+            class="escalation-item clickable"
+            (click)="openTaskDetail(item.taskId)"
+          >
             <div class="escalation-top">
               <span class="escalation-title">{{ item.title }}</span>
-              <span class="priority-badge" [class]="priorityClass(item.priority)">{{ item.priority }}</span>
+              <span class="priority-badge" [class]="priorityClass(item.priority)">{{
+                item.priority
+              }}</span>
             </div>
+
             <div class="escalation-meta">
               <span class="meta-team">{{ item.teamName }}</span>
               <span class="meta-sep">·</span>
               <span class="meta-owner">{{ item.assignedUserName }}</span>
               <span class="meta-sep">·</span>
               <span class="days-blocked">{{ item.daysBlocked }}d blocked</span>
+
               @if (item.dueDate) {
                 <span class="meta-sep">·</span>
-                <span [class.overdue-text]="isOverdue(item.dueDate)">
-                  Due {{ item.dueDate }}
-                </span>
+                <span [class.overdue-text]="isOverdue(item.dueDate)"> Due {{ item.dueDate }} </span>
               }
             </div>
+
             @if (item.blockerReason) {
               <div class="blocker-reason">{{ item.blockerReason }}</div>
             }
-          </div>
+          </button>
         }
       </div>
 
       <div class="panel">
-        <h2>
-          Staffing Pressure
-          <span class="panel-subtitle">Workload concentration</span>
-        </h2>
+        <div class="panel-heading">
+          <div>
+            <div class="section-eyebrow">Staffing</div>
+            <h2>Workload Concentration</h2>
+            <p>People carrying the heaviest active workload.</p>
+          </div>
+        </div>
+
         @if (data.workloadByEmployee.length === 0) {
           <p class="empty-state">No active assignments.</p>
         }
+
         @for (person of data.workloadByEmployee; track person.userId + '-' + person.teamId) {
-          <div class="workload-row">
+          <button
+            type="button"
+            class="workload-row clickable"
+            (click)="goToTeamMetrics(person.teamId)"
+          >
             <div class="workload-person">
               <span class="person-name">{{ person.fullName }}</span>
               <span class="person-team">{{ person.teamName }}</span>
@@ -170,33 +315,50 @@
               <div
                 class="workload-bar"
                 [style.width.%]="(person.openTaskCount / (data.totalActiveTasks || 1)) * 100"
-                [class.workload-high]="person.openTaskCount >= 5">
-              </div>
+                [class.workload-high]="person.openTaskCount >= 5"
+              ></div>
             </div>
             <span class="workload-count" [class.workload-high-text]="person.openTaskCount >= 5">
               {{ person.openTaskCount }}
             </span>
-          </div>
+          </button>
         }
       </div>
-
     </div>
 
-    <!-- Bottom Charts Row -->
     <div class="charts-row">
       <div class="chart-panel">
-        <h2>Completed This Month by Team</h2>
+        <div class="panel-heading">
+          <div>
+            <div class="section-eyebrow">Delivery</div>
+            <h2>Completed This Month by Team</h2>
+          </div>
+        </div>
         <div class="chart-wrap">
           <canvas #chartCanvas id="completedChart"></canvas>
         </div>
       </div>
+
       <div class="chart-panel">
-        <h2>Unassigned Backlog by Team</h2>
+        <div class="panel-heading">
+          <div>
+            <div class="section-eyebrow">Backlog Ownership</div>
+            <h2>Unassigned Backlog by Team</h2>
+          </div>
+        </div>
         <div class="chart-wrap">
           <canvas #chartCanvas id="unassignedChart"></canvas>
         </div>
       </div>
     </div>
-
   </div>
+
+  @if (selectedTaskId()) {
+    <app-task-detail
+      [taskId]="selectedTaskId()"
+      [canManage]="false"
+      [readOnly]="true"
+      (close)="closeTaskDetail()"
+    ></app-task-detail>
+  }
 }

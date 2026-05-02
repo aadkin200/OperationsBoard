@@ -4,6 +4,8 @@ import apsoftware.operationsboard.dto.CompletionTrendDto;
 import apsoftware.operationsboard.dto.DashboardSummaryDto;
 import apsoftware.operationsboard.dto.EscalationItemDto;
 import apsoftware.operationsboard.dto.ExecutiveDashboardDto;
+import apsoftware.operationsboard.dto.ExecutiveDrilldownDto;
+import apsoftware.operationsboard.dto.LeadershipActionDto;
 import apsoftware.operationsboard.dto.MemberDashboardDto;
 import apsoftware.operationsboard.dto.TaskDto;
 import apsoftware.operationsboard.dto.TeamDashboardDto;
@@ -13,7 +15,9 @@ import apsoftware.operationsboard.entity.Membership;
 import apsoftware.operationsboard.entity.Task;
 import apsoftware.operationsboard.entity.Team;
 import apsoftware.operationsboard.entity.User;
+import apsoftware.operationsboard.enums.PriorityLevel;
 import apsoftware.operationsboard.enums.TaskStatus;
+import apsoftware.operationsboard.exception.BadRequestException;
 import apsoftware.operationsboard.exception.ForbiddenException;
 import apsoftware.operationsboard.exception.ResourceNotFoundException;
 import apsoftware.operationsboard.mapper.DtoMapper;
@@ -28,6 +32,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -100,6 +105,7 @@ public class DashboardService {
         List<EscalationItemDto> escalationQueue = buildEscalationQueue(sevenDaysAgo);
         List<CompletionTrendDto> completionTrend = buildCompletionTrend(trendStart, today);
         List<TeamHealthDto> teamHealth = buildTeamHealth(workloadByTeam, blockedByTeam, overdueByTeam, unassignedByTeam, completedByTeam);
+        List<LeadershipActionDto> leadershipActions = buildLeadershipActions(teamHealth, totalCriticalRisk, totalDueSoon);
 
         ExecutiveDashboardDto dto = new ExecutiveDashboardDto();
         dto.setTotalActiveTasks(totalActive);
@@ -114,10 +120,82 @@ public class DashboardService {
         dto.setCompletionTrend(completionTrend);
         dto.setTeamHealth(teamHealth);
         dto.setEscalationQueue(escalationQueue);
+        dto.setLeadershipActions(leadershipActions);
         dto.setWorkloadByEmployee(taskRepository.countWorkloadByEmployee());
         dto.setUnassignedBacklogByTeam(unassignedByTeam);
 
         return dto;
+    }
+
+    private List<LeadershipActionDto> buildLeadershipActions(
+            List<TeamHealthDto> teamHealth,
+            long totalCriticalRisk,
+            long totalDueSoon
+    ) {
+        List<LeadershipActionDto> actions = new ArrayList<>();
+
+        for (TeamHealthDto team : teamHealth) {
+            if (team.getOverdueCount() >= 5) {
+                actions.add(new LeadershipActionDto(
+                        "CRITICAL",
+                        "Overdue Work",
+                        team.getTeamName(),
+                        team.getOverdueCount() + " overdue tasks require leadership visibility."
+                ));
+            } else if (team.getOverdueCount() > 0) {
+                actions.add(new LeadershipActionDto(
+                        "HIGH",
+                        "Delivery Risk",
+                        team.getTeamName(),
+                        team.getOverdueCount() + " overdue tasks may impact delivery timelines."
+                ));
+            }
+
+            if (team.getBlockedCount() >= 3) {
+                actions.add(new LeadershipActionDto(
+                        "HIGH",
+                        "Blocked Work",
+                        team.getTeamName(),
+                        team.getBlockedCount() + " blocked tasks may require escalation support."
+                ));
+            } else if (team.getBlockedCount() > 0) {
+                actions.add(new LeadershipActionDto(
+                        "MEDIUM",
+                        "Blocker Awareness",
+                        team.getTeamName(),
+                        team.getBlockedCount() + " blocked tasks are slowing execution."
+                ));
+            }
+
+            if (team.getUnassignedCount() >= 5) {
+                actions.add(new LeadershipActionDto(
+                        "MEDIUM",
+                        "Staffing Pressure",
+                        team.getTeamName(),
+                        team.getUnassignedCount() + " unassigned tasks remain in the team backlog."
+                ));
+            }
+        }
+
+        if (totalCriticalRisk > 0) {
+            actions.add(0, new LeadershipActionDto(
+                    "CRITICAL",
+                    "Critical Risk",
+                    "Organization-wide",
+                    totalCriticalRisk + " critical risk items require executive awareness."
+            ));
+        }
+
+        if (totalDueSoon >= 10) {
+            actions.add(new LeadershipActionDto(
+                    "HIGH",
+                    "Near-Term Delivery Pressure",
+                    "Organization-wide",
+                    totalDueSoon + " tasks are due within the next 7 days."
+            ));
+        }
+
+        return actions;
     }
 
     private List<EscalationItemDto> buildEscalationQueue(LocalDateTime cutoff) {
@@ -198,9 +276,9 @@ public class DashboardService {
             long completedCount = completedMap.getOrDefault(teamId, 0L);
 
             String health;
-            if (overdueCount > 0 || blockedCount >= 2) {
+            if (overdueCount >= 5 || blockedCount >= 5) {
                 health = "RED";
-            } else if (blockedCount >= 1 || unassignedCount >= 3) {
+            } else if (overdueCount > 0 || blockedCount >= 2 || unassignedCount >= 5) {
                 health = "YELLOW";
             } else {
                 health = "GREEN";
@@ -337,5 +415,93 @@ public class DashboardService {
         dashboard.setClaimableTaskCount((long) claimableTasks.size());
 
         return dashboard;
+    }
+    
+    public ExecutiveDrilldownDto getExecutiveDrilldown(Long currentUserId, String type) {
+        User currentUser = getUser(currentUserId);
+
+        if (!permissionService.isExecutive(currentUser)) {
+            throw new ForbiddenException("Only executives can view executive drilldowns.");
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime startOfNextMonth = today.plusMonths(1).withDayOfMonth(1).atStartOfDay();
+
+        List<Task> visibleTasks = taskRepository.findByHiddenAfterIsNullOrHiddenAfterAfter(now);
+
+        List<Task> filtered;
+        String title;
+        String subtitle;
+
+        switch (type.toLowerCase()) {
+            case "active" -> {
+                title = "Active Work";
+                subtitle = "All visible open, claimed, in-progress, and blocked work across the organization.";
+                filtered = visibleTasks.stream()
+                        .filter(task -> task.getStatus() == TaskStatus.OPEN
+                                || task.getStatus() == TaskStatus.CLAIMED
+                                || task.getStatus() == TaskStatus.IN_PROGRESS
+                                || task.getStatus() == TaskStatus.BLOCKED)
+                        .toList();
+            }
+            case "mission-risk" -> {
+                title = "Mission Risk";
+                subtitle = "Critical priority work that is blocked or overdue.";
+                filtered = visibleTasks.stream()
+                        .filter(task -> task.getPriority() == PriorityLevel.CRITICAL)
+                        .filter(task -> task.getStatus() != TaskStatus.COMPLETE
+                                && task.getStatus() != TaskStatus.CANCELLED)
+                        .filter(task -> task.getStatus() == TaskStatus.BLOCKED
+                                || (task.getDueDate() != null && task.getDueDate().isBefore(today)))
+                        .toList();
+            }
+            case "blocked" -> {
+                title = "Blocked Work";
+                subtitle = "All currently blocked work across teams.";
+                filtered = visibleTasks.stream()
+                        .filter(task -> task.getStatus() == TaskStatus.BLOCKED)
+                        .toList();
+            }
+            case "sla-pressure" -> {
+                title = "SLA Pressure";
+                subtitle = "Work that is overdue or due within the next 7 days.";
+                filtered = visibleTasks.stream()
+                        .filter(task -> task.getStatus() != TaskStatus.COMPLETE
+                                && task.getStatus() != TaskStatus.CANCELLED)
+                        .filter(task -> task.getDueDate() != null)
+                        .filter(task -> task.getDueDate().isBefore(today)
+                                || !task.getDueDate().isAfter(today.plusDays(7)))
+                        .toList();
+            }
+            case "unassigned" -> {
+                title = "Unassigned Backlog";
+                subtitle = "Open backlog items that do not currently have an owner.";
+                filtered = visibleTasks.stream()
+                        .filter(task -> task.getStatus() == TaskStatus.OPEN)
+                        .filter(task -> task.getAssignedUser() == null)
+                        .toList();
+            }
+            case "completed" -> {
+                title = "Completed This Month";
+                subtitle = "Work completed during the current reporting month.";
+                filtered = taskRepository.findByStatus(TaskStatus.COMPLETE).stream()
+                        .filter(task -> task.getCompletedAt() != null)
+                        .filter(task -> !task.getCompletedAt().isBefore(startOfMonth))
+                        .filter(task -> task.getCompletedAt().isBefore(startOfNextMonth))
+                        .toList();
+            }
+            default -> throw new BadRequestException("Unknown executive drilldown type: " + type);
+        }
+
+        List<TaskDto> taskDtos = filtered.stream()
+                .sorted(Comparator
+                        .comparing(Task::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(Task::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(DtoMapper::toTaskDto)
+                .toList();
+
+        return new ExecutiveDrilldownDto(type, title, subtitle, taskDtos);
     }
 }
