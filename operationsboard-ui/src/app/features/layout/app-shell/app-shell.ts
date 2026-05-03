@@ -28,6 +28,12 @@ export class AppShell implements OnInit {
     });
   }
 
+  canViewExecutiveDashboard(): boolean {
+    const user = this.authService.currentUser();
+
+    return user?.globalAccessLevel === 'EXECUTIVE' || user?.globalAccessLevel === 'SUPER_USER';
+  }
+
   toggleTeams(): void {
     this.teamsExpanded.set(!this.teamsExpanded());
   }

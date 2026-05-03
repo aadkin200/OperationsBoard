@@ -6,7 +6,9 @@
       <nav>
         <a routerLink="/dashboard/me" routerLinkActive="active"> My Dashboard </a>
 
-        <a routerLink="/dashboard/executive" routerLinkActive="active"> Executive Dashboard </a>
+        @if (canViewExecutiveDashboard()) {
+          <a routerLink="/dashboard/executive" routerLinkActive="active"> Executive Dashboard </a>
+        }
 
         <button class="nav-toggle" type="button" (click)="toggleTeams()">
           <span>Teams</span>

@@ -1,31 +1,31 @@
 INSERT INTO users (id, employee_id, username, password, first_name, last_name, email, active, global_access_level, created_at, updated_at) VALUES
-(1, 'OB-0001', 'alex', 'password', 'Alex', 'Adkins', 'alex.adkins@operationsboard.demo', true, 'SUPER_USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 'OB-0002', 'executive', 'password', 'Morgan', 'Reed', 'morgan.reed@operationsboard.demo', true, 'EXECUTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(1, 'OB-0001', 'aadkins', 'password', 'Alex', 'Adkins', 'alex.adkins@operationsboard.demo', true, 'SUPER_USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 'OB-0002', 'mreed', 'password', 'Morgan', 'Reed', 'morgan.reed@operationsboard.demo', true, 'EXECUTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
-(3, 'ENG-0001', 'eng.manager', 'password', 'Erin', 'Carter', 'erin.carter@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(4, 'ENG-0002', 'eng.member1', 'password', 'Devon', 'Brooks', 'devon.brooks@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(5, 'ENG-0003', 'eng.member2', 'password', 'Taylor', 'Nguyen', 'taylor.nguyen@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(6, 'ENG-0004', 'eng.member3', 'password', 'Jordan', 'Patel', 'jordan.patel@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 'ENG-0001', 'ecarter', 'password', 'Erin', 'Carter', 'erin.carter@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 'ENG-0002', 'dbrooks', 'password', 'Devon', 'Brooks', 'devon.brooks@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 'ENG-0003', 'tnguyen', 'password', 'Taylor', 'Nguyen', 'taylor.nguyen@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(6, 'ENG-0004', 'jpatel', 'password', 'Jordan', 'Patel', 'jordan.patel@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
-(7, 'OPS-0001', 'ops.manager', 'password', 'Riley', 'Morgan', 'riley.morgan@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(8, 'OPS-0002', 'ops.member1', 'password', 'Casey', 'Johnson', 'casey.johnson@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(9, 'OPS-0003', 'ops.member2', 'password', 'Avery', 'Smith', 'avery.smith@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(10, 'OPS-0004', 'ops.member3', 'password', 'Jamie', 'Williams', 'jamie.williams@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, 'OPS-0001', 'rmorgan', 'password', 'Riley', 'Morgan', 'riley.morgan@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(8, 'OPS-0002', 'cjohnson', 'password', 'Casey', 'Johnson', 'casey.johnson@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(9, 'OPS-0003', 'asmith', 'password', 'Avery', 'Smith', 'avery.smith@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(10, 'OPS-0004', 'jwilliams', 'password', 'Jamie', 'Williams', 'jamie.williams@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
-(11, 'CYB-0001', 'cyber.manager', 'password', 'Quinn', 'Davis', 'quinn.davis@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(12, 'CYB-0002', 'cyber.member1', 'password', 'Skyler', 'Brown', 'skyler.brown@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(13, 'CYB-0003', 'cyber.member2', 'password', 'Parker', 'Miller', 'parker.miller@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(14, 'CYB-0004', 'cyber.member3', 'password', 'Rowan', 'Wilson', 'rowan.wilson@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(11, 'CYB-0001', 'qdavis', 'password', 'Quinn', 'Davis', 'quinn.davis@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(12, 'CYB-0002', 'sbrown', 'password', 'Skyler', 'Brown', 'skyler.brown@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(13, 'CYB-0003', 'pmiller', 'password', 'Parker', 'Miller', 'parker.miller@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(14, 'CYB-0004', 'rwilson', 'password', 'Rowan', 'Wilson', 'rowan.wilson@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
-(15, 'DBA-0001', 'dba.manager', 'password', 'Harper', 'Moore', 'harper.moore@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(16, 'DBA-0002', 'dba.member1', 'password', 'Logan', 'Taylor', 'logan.taylor@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(17, 'DBA-0003', 'dba.member2', 'password', 'Emerson', 'Anderson', 'emerson.anderson@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(18, 'DBA-0004', 'dba.member3', 'password', 'Finley', 'Thomas', 'finley.thomas@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(15, 'DBA-0001', 'hmoore', 'password', 'Harper', 'Moore', 'harper.moore@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(16, 'DBA-0002', 'ltaylor', 'password', 'Logan', 'Taylor', 'logan.taylor@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(17, 'DBA-0003', 'eanderson', 'password', 'Emerson', 'Anderson', 'emerson.anderson@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(18, 'DBA-0004', 'fthomas', 'password', 'Finley', 'Thomas', 'finley.thomas@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
-(19, 'NET-0001', 'net.manager', 'password', 'Cameron', 'Jackson', 'cameron.jackson@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(20, 'NET-0002', 'net.member1', 'password', 'Reese', 'White', 'reese.white@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(21, 'NET-0003', 'net.member2', 'password', 'Dakota', 'Harris', 'dakota.harris@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(22, 'NET-0004', 'net.member3', 'password', 'Sage', 'Martin', 'sage.martin@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+(19, 'NET-0001', 'cjackson', 'password', 'Cameron', 'Jackson', 'cameron.jackson@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(20, 'NET-0002', 'rwhite', 'password', 'Reese', 'White', 'reese.white@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(21, 'NET-0003', 'dharris', 'password', 'Dakota', 'Harris', 'dakota.harris@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(22, 'NET-0004', 'smartin', 'password', 'Sage', 'Martin', 'sage.martin@operationsboard.demo', true, 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO teams (id, name, description, active, created_at, updated_at) VALUES
 (1, 'Engineering', 'Application engineering and release execution.', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
