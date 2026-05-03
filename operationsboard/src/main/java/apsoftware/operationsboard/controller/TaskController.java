@@ -23,7 +23,7 @@ public class TaskController {
 
     @GetMapping("/my")
     public List<TaskDto> getMyTasks() {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+        Long currentUserId = currentUserService.getCurrentUserId();
         return taskService.getVisibleTasks(currentUserId)
                 .stream()
                 .map(DtoMapper::toTaskDto)
@@ -31,10 +31,8 @@ public class TaskController {
     }
 
     @GetMapping("/team/{teamId}")
-    public List<TaskDto> getTeamTasks(
-            @PathVariable Long teamId
-    ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+    public List<TaskDto> getTeamTasks(@PathVariable Long teamId) {
+        Long currentUserId = currentUserService.getCurrentUserId();
         return taskService.getTeamTasks(currentUserId, teamId)
                 .stream()
                 .map(DtoMapper::toTaskDto)
@@ -42,43 +40,38 @@ public class TaskController {
     }
 
     @GetMapping("/{taskId}")
-    public TaskDto getTaskById(
-            @PathVariable Long taskId
-    ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+    public TaskDto getTaskById(@PathVariable Long taskId) {
+        Long currentUserId = currentUserService.getCurrentUserId();
         return DtoMapper.toTaskDto(taskService.getTaskById(currentUserId, taskId));
     }
 
     @PostMapping
-    public TaskDto createTask(
-            @RequestBody TaskCreateRequest request
-    ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+    public TaskDto createTask(@RequestBody TaskCreateRequest request) {
+        Long currentUserId = currentUserService.getCurrentUserId();
+
         Task task = taskService.createTask(
                 currentUserId,
                 request.getTeamId(),
+                request.getParentTaskId(),
                 request.getTitle(),
                 request.getDescription(),
                 request.getPriority(),
-                request.getDueDate()
+                request.getDueDate(),
+                request.getAssignedUserId()
         );
 
         return DtoMapper.toTaskDto(task);
     }
 
     @PatchMapping("/{taskId}/claim")
-    public TaskDto claimTask(
-            @PathVariable Long taskId
-    ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+    public TaskDto claimTask(@PathVariable Long taskId) {
+        Long currentUserId = currentUserService.getCurrentUserId();
         return DtoMapper.toTaskDto(taskService.claimTask(currentUserId, taskId));
     }
 
     @PatchMapping("/{taskId}/unclaim")
-    public TaskDto unclaimTask(
-            @PathVariable Long taskId
-    ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+    public TaskDto unclaimTask(@PathVariable Long taskId) {
+        Long currentUserId = currentUserService.getCurrentUserId();
         return DtoMapper.toTaskDto(taskService.unclaimTask(currentUserId, taskId));
     }
 
@@ -87,7 +80,7 @@ public class TaskController {
             @PathVariable Long taskId,
             @RequestBody TaskAssignRequest request
     ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+        Long currentUserId = currentUserService.getCurrentUserId();
         return DtoMapper.toTaskDto(
                 taskService.assignTask(currentUserId, taskId, request.getAssigneeUserId())
         );
@@ -98,7 +91,7 @@ public class TaskController {
             @PathVariable Long taskId,
             @RequestBody TaskStatusUpdateRequest request
     ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+        Long currentUserId = currentUserService.getCurrentUserId();
         return DtoMapper.toTaskDto(
                 taskService.updateStatus(
                         currentUserId,
@@ -110,26 +103,20 @@ public class TaskController {
     }
 
     @PatchMapping("/{taskId}/cancel")
-    public TaskDto cancelTask(
-            @PathVariable Long taskId
-    ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+    public TaskDto cancelTask(@PathVariable Long taskId) {
+        Long currentUserId = currentUserService.getCurrentUserId();
         return DtoMapper.toTaskDto(taskService.cancelTask(currentUserId, taskId));
     }
 
     @PatchMapping("/{taskId}/reopen")
-    public TaskDto reopenTask(
-            @PathVariable Long taskId
-    ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+    public TaskDto reopenTask(@PathVariable Long taskId) {
+        Long currentUserId = currentUserService.getCurrentUserId();
         return DtoMapper.toTaskDto(taskService.reopenTask(currentUserId, taskId));
     }
-    
+
     @GetMapping("/team/{teamId}/board")
-    public TaskBoardDto getTeamBoard(
-            @PathVariable Long teamId
-    ) {
-    	Long currentUserId = currentUserService.getCurrentUserId();
+    public TaskBoardDto getTeamBoard(@PathVariable Long teamId) {
+        Long currentUserId = currentUserService.getCurrentUserId();
         return taskService.getTeamBoard(currentUserId, teamId);
     }
 }

@@ -74,37 +74,77 @@
   border: 1px solid #e5e7eb;
   border-radius: 22px;
   background:
+    radial-gradient(circle at 18px 18px, rgba(37, 99, 235, 0.08) 1.5px, transparent 1.5px),
     linear-gradient(#f8fafc 31px, transparent 31px),
     linear-gradient(90deg, #f8fafc 31px, transparent 31px), #ffffff;
   background-size: 32px 32px;
-  padding: 28px;
+  padding: 30px;
   box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.02);
 }
 
 .tree-node-wrap {
   position: relative;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.root-node {
+  margin-left: 0 !important;
+}
+
+.connector-elbow {
+  position: absolute;
+  top: 30px;
+  left: -42px;
+  width: 42px;
+  height: 28px;
+  border-left: 2px solid #93c5fd;
+  border-bottom: 2px solid #93c5fd;
+  border-bottom-left-radius: 18px;
+  pointer-events: none;
+}
+
+.connector-elbow::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -2px;
+  width: 12px;
+  height: 2px;
+  background: linear-gradient(90deg, #93c5fd, #2563eb);
+}
+
+.connector-dot {
+  position: absolute;
+  right: -8px;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #2563eb;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 .children-lane {
   position: relative;
-  margin-top: 12px;
-  padding-left: 22px;
-  border-left: 2px solid #cbd5e1;
+  margin-top: 16px;
+  padding-left: 0;
 }
 
-.children-lane::before {
-  content: '';
+.children-spine {
   position: absolute;
-  top: 0;
-  left: -2px;
-  width: 28px;
-  height: 2px;
-  background: #cbd5e1;
+  top: -16px;
+  bottom: 26px;
+  left: 12px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2563eb, #93c5fd 72%, rgba(147, 197, 253, 0));
+  pointer-events: none;
 }
 
 .node-card {
-  width: min(560px, 100%);
+  display: block;
+  width: min(640px, 100%);
   text-align: left;
   border: 1px solid #dbe3ef;
   border-radius: 18px;
@@ -112,10 +152,23 @@
   padding: 15px;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
   cursor: pointer;
+  position: relative;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    border-radius: 18px 0 0 18px;
+    background: linear-gradient(180deg, #2563eb, #22c55e);
+    opacity: 0.9;
+  }
 
   &:hover {
     border-color: #93c5fd;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.13);
+    transform: translateY(-1px);
   }
 }
 
@@ -173,7 +226,8 @@
 }
 
 .status-pill,
-.priority-pill {
+.priority-pill,
+.dependency-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -230,6 +284,72 @@
   color: #991b1b;
 }
 
+.node-progress {
+  margin-top: 13px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 10px;
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  color: #334155;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #22c55e);
+  transition: width 160ms ease;
+}
+
+.dependency-pill.pending {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.dependency-pill.blocked {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.dependency-pill.complete {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.dependency-pill.none {
+  background: #f3f4f6;
+  color: #64748b;
+}
+
+.node-warning {
+  margin-top: 9px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .node-blocker {
   margin-top: 10px;
   border-radius: 10px;
@@ -238,6 +358,28 @@
   padding: 8px 10px;
   font-size: 12px;
   font-weight: 700;
+}
+
+.node-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.child-task-button {
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+
+  &:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+  }
 }
 
 .loading-state,
@@ -267,5 +409,15 @@
 
   .tree-node-wrap {
     margin-left: 0 !important;
+  }
+
+  .connector-elbow,
+  .children-spine {
+    display: none;
+  }
+
+  .progress-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

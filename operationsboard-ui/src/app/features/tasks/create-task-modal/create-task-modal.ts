@@ -18,6 +18,8 @@ import { TaskService } from '../../../core/services/task.service';
 })
 export class CreateTaskModal implements OnInit {
   @Input({ required: true }) teamId!: number;
+  @Input() parentTaskId: number | null = null;
+  @Input() parentTaskTitle: string | null = null;
 
   @Output() close = new EventEmitter<void>();
   @Output() created = new EventEmitter<TaskDto>();
@@ -77,6 +79,7 @@ export class CreateTaskModal implements OnInit {
 
     const request: TaskCreateRequest = {
       teamId: this.teamId,
+      parentTaskId: this.parentTaskId,
       title,
       description: this.description.trim(),
       priority: this.priority,
@@ -92,10 +95,18 @@ export class CreateTaskModal implements OnInit {
         this.saving.set(false);
         this.created.emit(task);
       },
-      error: () => {
+      error: (error) => {
         this.saving.set(false);
-        this.errorMessage.set('Unable to create task.');
+        this.errorMessage.set(this.getBackendErrorMessage(error, 'Unable to create task.'));
       },
     });
+  }
+
+  private getBackendErrorMessage(error: any, fallback: string): string {
+    if (typeof error?.error === 'string') {
+      return error.error;
+    }
+
+    return error?.error?.message || error?.error?.error || error?.message || fallback;
   }
 }

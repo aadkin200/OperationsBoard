@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   CommentDto,
   MembershipDto,
@@ -50,7 +51,10 @@ export class TaskDetail implements OnChanges {
   selectedAssignedUserId = '';
   blockerReason = '';
 
-  constructor(private taskService: TaskService) {}
+  constructor(
+    private router: Router,
+    private taskService: TaskService,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['taskId'] && this.taskId) {
@@ -109,6 +113,17 @@ export class TaskDetail implements OnChanges {
 
   stopClick(event: MouseEvent): void {
     event.stopPropagation();
+  }
+
+  goToWorkflowTree(): void {
+    const task = this.task();
+
+    if (!task) {
+      return;
+    }
+
+    this.close.emit();
+    this.router.navigate(['/team', task.teamId, 'tree']);
   }
 
   submitComment(): void {
@@ -295,11 +310,15 @@ export class TaskDetail implements OnChanges {
       return `${actor} added a blocker comment.`;
     }
 
+    if (item.action === 'PARENT_LINKED') {
+      return `${actor} linked this task to parent task ${item.newValue || ''}.`;
+    }
+
     if (item.fieldName === 'status') {
       return `${actor} changed status from ${item.oldValue || 'None'} to ${item.newValue || 'None'}.`;
     }
 
-    if (item.fieldName === 'assignedUser') {
+    if (item.fieldName === 'assigned_user_id' || item.fieldName === 'assignedUser') {
       return `${actor} changed assignment from ${item.oldValue || 'Unassigned'} to ${item.newValue || 'Unassigned'}.`;
     }
 

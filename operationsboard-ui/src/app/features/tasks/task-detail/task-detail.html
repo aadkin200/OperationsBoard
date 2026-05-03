@@ -22,6 +22,10 @@
           <span class="priority-pill" [class]="task.priority.toLowerCase()">{{
             task.priority
           }}</span>
+
+          <button type="button" class="workflow-tree-button" (click)="goToWorkflowTree()">
+            View Workflow Tree
+          </button>
         </div>
       </header>
 
@@ -111,8 +115,7 @@
                       [(ngModel)]="blockerReason"
                       rows="3"
                       placeholder="Explain what is blocking this task"
-                    >
-                    </textarea>
+                    ></textarea>
                   </label>
 
                   <button
@@ -224,8 +227,7 @@
               placeholder="Add a comment..."
               rows="4"
               [disabled]="readOnly && !canManage"
-            >
-            </textarea>
+            ></textarea>
 
             <label class="blocker-toggle">
               <input type="checkbox" [(ngModel)]="blockerCommentMode" />

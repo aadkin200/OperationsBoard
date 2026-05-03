@@ -4,8 +4,17 @@
 
     <header>
       <div class="eyebrow">Manager Action</div>
-      <h1>Create Task</h1>
-      <p>Create a new task for this team board.</p>
+
+      @if (parentTaskId) {
+        <h1>Create Child Task</h1>
+        <p>
+          Create a dependent child task under
+          <strong>{{ parentTaskTitle }}</strong>
+        </p>
+      } @else {
+        <h1>Create Task</h1>
+        <p>Create a new task for this team board.</p>
+      }
     </header>
 
     @if (errorMessage()) {
@@ -31,8 +40,7 @@
           [(ngModel)]="description"
           placeholder="Describe the work"
           rows="5"
-        >
-        </textarea>
+        ></textarea>
       </label>
 
       <div class="form-row">
@@ -83,6 +91,8 @@
         <button type="submit" class="primary" [disabled]="saving() || !title.trim()">
           @if (saving()) {
             Creating...
+          } @else if (parentTaskId) {
+            Create Child Task
           } @else {
             Create Task
           }

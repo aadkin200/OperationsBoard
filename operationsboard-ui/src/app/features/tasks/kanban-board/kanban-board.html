@@ -38,6 +38,10 @@
         <span>Executive read-only</span>
       }
 
+      <button type="button" class="tree-button" (click)="goToTree($event)">
+        View Workflow Tree
+      </button>
+
       @if (board()?.canCreateTasks && !board()?.readOnly) {
         <button type="button" class="create-task-button" (click)="openCreateTaskModal()">
           Create Task
@@ -102,6 +106,10 @@
               <div class="card-actions">
                 <button type="button" class="details-button" (click)="openTaskDetail(task, $event)">
                   Details
+                </button>
+
+                <button type="button" class="tree-card-button" (click)="goToTree($event)">
+                  Tree
                 </button>
 
                 @if (task.status === 'OPEN' && board()?.canClaimTasks && !board()?.readOnly) {

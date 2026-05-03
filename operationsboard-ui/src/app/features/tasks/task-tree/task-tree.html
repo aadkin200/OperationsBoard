@@ -50,11 +50,31 @@
       (close)="closeTask()"
     ></app-task-detail>
   }
+
+  @if (showCreateChildModal() && parentForNewChild()) {
+    <app-create-task-modal
+      [teamId]="tree.teamId"
+      [parentTaskId]="parentForNewChild()!.task.id"
+      [parentTaskTitle]="parentForNewChild()!.task.title"
+      (close)="closeCreateChildModal()"
+      (created)="childTaskCreated()"
+    ></app-create-task-modal>
+  }
 }
 
 <ng-template #nodeTemplate let-node="node" let-depth="depth">
-  <div class="tree-node-wrap" [style.margin-left.px]="depth * 44">
-    <button type="button" class="node-card" (click)="openTask(node.task.id)">
+  <div
+    class="tree-node-wrap"
+    [class.root-node]="depth === 0"
+    [style.margin-left.px]="depth === 0 ? 0 : 54"
+  >
+    @if (depth > 0) {
+      <div class="connector-elbow" aria-hidden="true">
+        <span class="connector-dot"></span>
+      </div>
+    }
+
+    <article class="node-card" role="button" tabindex="0" (click)="openTask(node.task.id)">
       <div class="node-card-top">
         <div class="node-title">
           @if (hasChildren(node)) {
@@ -85,15 +105,49 @@
         }
       </div>
 
+      @if (hasChildren(node)) {
+        <div class="node-progress">
+          <div class="progress-header">
+            <span class="progress-label">{{ progressLabel(node) }}</span>
+
+            <span class="dependency-pill" [class]="dependencyStateClass(node)">
+              {{ dependencyStateLabel(node) }}
+            </span>
+          </div>
+
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="completionPercent(node)"></div>
+          </div>
+        </div>
+
+        @if (parentClosureWarning(node)) {
+          <div class="node-warning">
+            {{ parentClosureWarning(node) }}
+          </div>
+        }
+      }
+
       @if (node.task.blockerReason) {
         <div class="node-blocker">
           {{ node.task.blockerReason }}
         </div>
       }
-    </button>
+
+      <div class="node-actions">
+        <button
+          type="button"
+          class="child-task-button"
+          (click)="openCreateChildModal(node, $event)"
+        >
+          + Child Task
+        </button>
+      </div>
+    </article>
 
     @if (hasChildren(node) && !isCollapsed(node)) {
       <div class="children-lane">
+        <div class="children-spine" aria-hidden="true"></div>
+
         @for (child of node.children; track child.task.id) {
           <ng-container
             *ngTemplateOutlet="nodeTemplate; context: { node: child, depth: depth + 1 }"

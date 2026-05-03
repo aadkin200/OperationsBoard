@@ -239,3 +239,13 @@ export interface TaskTreeDto {
   teamName: string;
   roots: TaskTreeNodeDto[];
 }
+
+export interface TaskCreateRequest {
+  teamId: number;
+  parentTaskId: number | null;
+  title: string;
+  description: string;
+  priority: PriorityLevel;
+  dueDate: string | null;
+  assignedUserId: number | null;
+}

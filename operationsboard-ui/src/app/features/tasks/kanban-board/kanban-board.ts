@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule, transferArrayItem } from '@angular/cdk/drag-drop';
 import { BlockerModal } from '../blocker-modal/blocker-modal';
 import { TaskDetail } from '../task-detail/task-detail';
@@ -37,6 +37,7 @@ export class KanbanBoard implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private taskService: TaskService,
   ) {}
 
@@ -96,6 +97,18 @@ export class KanbanBoard implements OnInit {
     const teamId = this.board()?.teamId;
     if (teamId) {
       this.loadBoard(teamId);
+    }
+  }
+
+  goToTree(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const teamId = this.board()?.teamId;
+
+    if (teamId) {
+      this.router.navigate(['/team', teamId, 'tree']);
     }
   }
 

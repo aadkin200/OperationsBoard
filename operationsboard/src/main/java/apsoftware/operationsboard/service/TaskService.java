@@ -78,7 +78,16 @@ public class TaskService {
     }
 
     @Transactional
-    public Task createTask(Long currentUserId, Long teamId, String title, String description, String priorityValue, java.time.LocalDate dueDate) {
+    public Task createTask(
+            Long currentUserId,
+            Long teamId,
+            Long parentTaskId,
+            String title,
+            String description,
+            String priorityValue,
+            java.time.LocalDate dueDate,
+            Long assignedUserId
+    ) {
         User currentUser = getUser(currentUserId);
         Team team = getTeam(teamId);
 
@@ -90,18 +99,62 @@ public class TaskService {
             throw new BadRequestException("Task title is required.");
         }
 
+        Task parentTask = null;
+
+        if (parentTaskId != null) {
+            parentTask = getTask(parentTaskId);
+
+            if (!parentTask.getTeam().getId().equals(teamId)) {
+                throw new BadRequestException("Child task must belong to the same team as its parent task.");
+            }
+        }
+
+        User assignedUser = null;
+
+        if (assignedUserId != null) {
+            assignedUser = getUser(assignedUserId);
+
+            if (!permissionService.isTeamMember(assignedUserId, teamId)) {
+                throw new BadRequestException("Assignee must be a member of the task team.");
+            }
+        }
+
         Task task = new Task();
         task.setTeam(team);
+        task.setParentTask(parentTask);
         task.setTitle(title.trim());
         task.setDescription(description);
         task.setPriority(parsePriority(priorityValue));
         task.setDueDate(dueDate);
-        task.setStatus(TaskStatus.OPEN);
+        task.setStatus(assignedUser == null ? TaskStatus.OPEN : TaskStatus.CLAIMED);
         task.setCreatedBy(currentUser);
+        task.setAssignedUser(assignedUser);
 
         Task saved = taskRepository.save(task);
 
         taskAuditService.record(saved, currentUser, "TASK_CREATED", null, null, saved.getTitle());
+
+        if (parentTask != null) {
+            taskAuditService.record(
+                    saved,
+                    currentUser,
+                    "PARENT_LINKED",
+                    "parent_task_id",
+                    null,
+                    parentTask.getId().toString()
+            );
+        }
+
+        if (assignedUser != null) {
+            taskAuditService.record(
+                    saved,
+                    currentUser,
+                    "TASK_ASSIGNED",
+                    "assigned_user_id",
+                    null,
+                    assignedUser.getId().toString()
+            );
+        }
 
         return saved;
     }
@@ -251,14 +304,6 @@ public class TaskService {
             throw new BadRequestException("Blocker reason is required when blocking a task.");
         }
 
-//        if (newStatus == TaskStatus.COMPLETE) {
-//            task.setCompletedAt(LocalDateTime.now());
-//            task.setHiddenAfter(LocalDateTime.now().plusDays(7));
-//        } else if (newStatus != TaskStatus.OPEN) {
-//            task.setCompletedAt(null);
-//            task.setHiddenAfter(null);
-//        }
-        
         if (newStatus == TaskStatus.COMPLETE) {
             validateParentCanBeCompleted(task);
 
@@ -345,7 +390,7 @@ public class TaskService {
 
         return saved;
     }
-    
+
     public TaskBoardDto getTeamBoard(Long currentUserId, Long teamId) {
         User currentUser = getUser(currentUserId);
         Team team = getTeam(teamId);
@@ -442,7 +487,7 @@ public class TaskService {
         return taskRepository.findByIdWithDetails(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
     }
-    
+
     private void validateParentCanBeCompleted(Task task) {
         long incompleteChildren = taskRepository.countIncompleteDirectChildren(task.getId());
 
