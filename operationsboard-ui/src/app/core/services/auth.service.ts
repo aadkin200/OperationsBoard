@@ -4,11 +4,10 @@ import { Observable, tap } from 'rxjs';
 import { UserDto } from '../models/api.models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-
-  private readonly baseUrl = 'http://localhost:8080/api/auth';
+  private readonly baseUrl = '/api/auth';
 
   currentUser = signal<UserDto | null>(null);
 
@@ -19,34 +18,26 @@ export class AuthService {
     body.set('username', username);
     body.set('password', password);
 
-    return this.http.post<{ message: string }>(
-      `${this.baseUrl}/login`,
-      body.toString(),
-      {
-        headers: new HttpHeaders({
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }),
-        withCredentials: true
-      }
-    );
+    return this.http.post<{ message: string }>(`${this.baseUrl}/login`, body.toString(), {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }),
+      withCredentials: true,
+    });
   }
 
   loadCurrentUser(): Observable<UserDto> {
-    return this.http.get<UserDto>(`${this.baseUrl}/me`, {
-      withCredentials: true
-    }).pipe(
-      tap(user => this.currentUser.set(user))
-    );
+    return this.http
+      .get<UserDto>(`${this.baseUrl}/me`, {
+        withCredentials: true,
+      })
+      .pipe(tap((user) => this.currentUser.set(user)));
   }
 
   logout(): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(
-      `${this.baseUrl}/logout`,
-      {},
-      { withCredentials: true }
-    ).pipe(
-      tap(() => this.currentUser.set(null))
-    );
+    return this.http
+      .post<{ message: string }>(`${this.baseUrl}/logout`, {}, { withCredentials: true })
+      .pipe(tap(() => this.currentUser.set(null)));
   }
 
   isLoggedIn(): boolean {

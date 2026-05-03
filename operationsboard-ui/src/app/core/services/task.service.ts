@@ -16,8 +16,8 @@ import {
   providedIn: 'root',
 })
 export class TaskService {
-  private readonly baseUrl = 'http://localhost:8080/api/tasks';
-  private readonly teamsUrl = 'http://localhost:8080/api/teams';
+  private readonly baseUrl = '/api/tasks';
+  private readonly teamsUrl = '/api/teams';
 
   constructor(private http: HttpClient) {}
 

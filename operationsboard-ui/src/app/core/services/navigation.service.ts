@@ -6,7 +6,7 @@ import { SidebarTeamDto } from '../models/api.models';
   providedIn: 'root',
 })
 export class NavigationService {
-  private readonly baseUrl = 'http://localhost:8080/api/navigation';
+  private readonly baseUrl = '/api/navigation';
 
   constructor(private http: HttpClient) {}
 

@@ -6,7 +6,7 @@ import { TeamDto } from '../models/api.models';
   providedIn: 'root',
 })
 export class TeamService {
-  private readonly baseUrl = 'http://localhost:8080/api/teams';
+  private readonly baseUrl = '/api/teams';
 
   constructor(private http: HttpClient) {}
 

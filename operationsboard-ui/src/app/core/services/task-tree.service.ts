@@ -7,7 +7,7 @@ import { TaskTreeDto } from '../models/api.models';
   providedIn: 'root',
 })
 export class TaskTreeService {
-  private readonly baseUrl = 'http://localhost:8080/api/tasks';
+  private readonly baseUrl = '/api/tasks';
 
   constructor(private http: HttpClient) {}
 
