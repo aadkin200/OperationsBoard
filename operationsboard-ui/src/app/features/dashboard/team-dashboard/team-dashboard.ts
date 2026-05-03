@@ -7,33 +7,35 @@ import { TeamDashboardDto } from '../../../core/models/api.models';
   selector: 'app-team-dashboard',
   imports: [],
   templateUrl: './team-dashboard.html',
-  styleUrl: './team-dashboard.scss'
+  styleUrl: './team-dashboard.scss',
 })
 export class TeamDashboard implements OnInit {
-
   dashboard = signal<TeamDashboardDto | null>(null);
   loading = signal(false);
   errorMessage = signal<string | null>(null);
 
   constructor(
     private route: ActivatedRoute,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
   ) {}
 
   ngOnInit(): void {
-    const teamId = Number(this.route.snapshot.paramMap.get('teamId'));
+    this.route.paramMap.subscribe((params) => {
+      const teamId = Number(params.get('teamId'));
 
-    this.loading.set(true);
+      this.loading.set(true);
+      this.errorMessage.set(null);
 
-    this.dashboardService.getTeamDashboard(teamId).subscribe({
-      next: dashboard => {
-        this.dashboard.set(dashboard);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.errorMessage.set('Unable to load team dashboard.');
-        this.loading.set(false);
-      }
+      this.dashboardService.getTeamDashboard(teamId).subscribe({
+        next: (dashboard) => {
+          this.dashboard.set(dashboard);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.errorMessage.set('Unable to load team dashboard.');
+          this.loading.set(false);
+        },
+      });
     });
   }
 }

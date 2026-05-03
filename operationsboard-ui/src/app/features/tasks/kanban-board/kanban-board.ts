@@ -42,8 +42,10 @@ export class KanbanBoard implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const teamId = Number(this.route.snapshot.paramMap.get('teamId'));
-    this.loadBoard(teamId);
+    this.route.paramMap.subscribe((params) => {
+      const teamId = Number(params.get('teamId'));
+      this.loadBoard(teamId);
+    });
   }
 
   loadBoard(teamId: number, clearError = true): void {
@@ -129,6 +131,8 @@ export class KanbanBoard implements OnInit {
       event.previousIndex,
       event.currentIndex,
     );
+
+    this.recountColumns();
 
     targetColumn.count = targetColumn.tasks.length;
 
@@ -249,5 +253,14 @@ export class KanbanBoard implements OnInit {
 
   dismissError(): void {
     this.errorMessage.set(null);
+  }
+
+  private recountColumns(): void {
+    const updatedColumns = this.columns().map((column) => ({
+      ...column,
+      count: column.tasks.length,
+    }));
+
+    this.columns.set(updatedColumns);
   }
 }

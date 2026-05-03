@@ -1,5 +1,5 @@
 @if (loading()) {
-  <div class="loading-state">Loading task tree...</div>
+  <div class="loading-state">Loading workflow tree...</div>
 }
 
 @if (errorMessage()) {
@@ -10,34 +10,164 @@
   <section class="tree-page">
     <header class="tree-header">
       <div>
-        <div class="eyebrow">Visual Work Tree MVP</div>
-        <h1>{{ tree.teamName }} Task Tree</h1>
-        <p>Early visual hierarchy for related operational work. Canvas-style graph comes later.</p>
+        <div class="eyebrow">Workflow Tree</div>
+        <h1>{{ tree.teamName }} Tree</h1>
+        <p>Blueprint-style operational dependency view powered by the team task hierarchy.</p>
       </div>
 
-      <button type="button" class="back-button" (click)="goToBoard()">Back to Board</button>
+      <button type="button" class="primary-button" (click)="goToBoard()">Back to Board</button>
     </header>
 
-    <div class="tree-summary">
-      <span>
-        <strong>{{ totalNodes() }}</strong>
-        visible node{{ totalNodes() === 1 ? '' : 's' }}
-      </span>
+    <div class="tree-toolbar">
+      <div class="tree-stats">
+        <span>
+          <strong>{{ nodes().length }}</strong>
+          visible node{{ nodes().length === 1 ? '' : 's' }}
+        </span>
 
-      <span>
-        <strong>{{ tree.roots.length }}</strong>
-        root item{{ tree.roots.length === 1 ? '' : 's' }}
-      </span>
+        <span>
+          <strong>{{ connections().length }}</strong>
+          visible connection{{ connections().length === 1 ? '' : 's' }}
+        </span>
+      </div>
+
+      <div class="tree-controls">
+        <button type="button" class="control-button" (click)="zoomOut()">−</button>
+
+        <span class="zoom-label">{{ (zoom() * 100).toFixed(0) }}%</span>
+
+        <button type="button" class="control-button" (click)="zoomIn()">+</button>
+
+        <button type="button" class="reset-button" (click)="fitView()">Fit View</button>
+
+        <button type="button" class="reset-button" (click)="resetView()">Reset</button>
+      </div>
     </div>
 
     @if (tree.roots.length === 0) {
-      <div class="empty-state">No tasks available for this tree.</div>
+      <div class="empty-state">No tasks available for this workflow tree.</div>
     } @else {
-      <div class="tree-canvas">
-        @for (root of tree.roots; track root.task.id) {
-          <ng-container *ngTemplateOutlet="nodeTemplate; context: { node: root, depth: 0 }">
-          </ng-container>
-        }
+      <div #treeViewport class="tree-shell" (mousedown)="startPan($event)">
+        <div
+          class="workflow-tree"
+          [style.width.px]="canvasWidth()"
+          [style.height.px]="canvasHeight()"
+          [style.transform]="'scale(' + zoom() + ')'"
+        >
+          <svg
+            class="connection-layer"
+            [attr.width]="canvasWidth()"
+            [attr.height]="canvasHeight()"
+            [attr.viewBox]="'0 0 ' + canvasWidth() + ' ' + canvasHeight()"
+            aria-hidden="true"
+          >
+            <defs>
+              <marker
+                id="tree-arrowhead"
+                markerWidth="10"
+                markerHeight="10"
+                refX="8"
+                refY="3"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path d="M 0 0 L 8 3 L 0 6 Z"></path>
+              </marker>
+            </defs>
+
+            @for (connection of connections(); track connection.id) {
+              <path
+                class="connection-path"
+                [class.risk-blocked]="connection.riskLevel === 'blocked'"
+                [class.risk-overdue]="connection.riskLevel === 'overdue'"
+                [class.risk-critical]="connection.riskLevel === 'critical'"
+                [attr.d]="connection.path"
+                marker-end="url(#tree-arrowhead)"
+              ></path>
+            }
+          </svg>
+
+          @for (node of nodes(); track node.id) {
+            <article
+              class="tree-node"
+              [ngClass]="nodeRiskClasses(node)"
+              [style.left.px]="node.x"
+              [style.top.px]="node.y"
+              role="button"
+              tabindex="0"
+              (click)="openTask(node.id)"
+            >
+              <div class="node-top">
+                <div class="node-title-row">
+                  @if (node.hasChildren) {
+                    <button
+                      type="button"
+                      class="branch-toggle"
+                      (click)="toggleBranch(node, $event)"
+                      [attr.aria-label]="node.collapsed ? 'Expand branch' : 'Collapse branch'"
+                    >
+                      {{ node.collapsed ? '▶' : '▼' }}
+                    </button>
+                  }
+
+                  <span class="node-id">#{{ node.id }}</span>
+                </div>
+
+                <span class="priority-pill" [class]="priorityClass(node.priority)">
+                  {{ node.priority }}
+                </span>
+              </div>
+
+              <h2>{{ node.title }}</h2>
+
+              <div class="node-meta">
+                <span class="status-pill" [class]="statusClass(node.status)">
+                  {{ node.status }}
+                </span>
+
+                <span>{{ node.assignee }}</span>
+              </div>
+
+              <div class="dependency-row">
+                <span class="dependency-pill" [class]="dependencyStateClass(node)">
+                  {{ dependencyStateLabel(node) }}
+                </span>
+
+                <span>{{ completionLabel(node) }}</span>
+              </div>
+
+              @if (riskBadgeLabel(node)) {
+                <div class="risk-badge" [class]="node.riskLevel">
+                  {{ riskBadgeLabel(node) }}
+                </div>
+              }
+
+              @if (node.collapsed && node.hiddenDescendantCount > 0) {
+                <div class="collapsed-summary">
+                  +{{ node.hiddenDescendantCount }} hidden downstream
+                </div>
+              }
+
+              @if (node.dueDate) {
+                <div class="node-date">Due {{ node.dueDate }}</div>
+              }
+
+              @if (node.blockerReason) {
+                <div class="node-blocker">Blocked</div>
+              }
+
+              <div class="node-actions">
+                <button
+                  type="button"
+                  class="child-task-button"
+                  (click)="openCreateChildModal(node, $event)"
+                >
+                  + Child Task
+                </button>
+              </div>
+            </article>
+          }
+        </div>
       </div>
     }
   </section>
@@ -54,107 +184,10 @@
   @if (showCreateChildModal() && parentForNewChild()) {
     <app-create-task-modal
       [teamId]="tree.teamId"
-      [parentTaskId]="parentForNewChild()!.task.id"
-      [parentTaskTitle]="parentForNewChild()!.task.title"
+      [parentTaskId]="parentForNewChild()!.id"
+      [parentTaskTitle]="parentForNewChild()!.title"
       (close)="closeCreateChildModal()"
       (created)="childTaskCreated()"
     ></app-create-task-modal>
   }
 }
-
-<ng-template #nodeTemplate let-node="node" let-depth="depth">
-  <div
-    class="tree-node-wrap"
-    [class.root-node]="depth === 0"
-    [style.margin-left.px]="depth === 0 ? 0 : 54"
-  >
-    @if (depth > 0) {
-      <div class="connector-elbow" aria-hidden="true">
-        <span class="connector-dot"></span>
-      </div>
-    }
-
-    <article class="node-card" role="button" tabindex="0" (click)="openTask(node.task.id)">
-      <div class="node-card-top">
-        <div class="node-title">
-          @if (hasChildren(node)) {
-            <button type="button" class="collapse-button" (click)="toggleNode(node, $event)">
-              {{ isCollapsed(node) ? '+' : '−' }}
-            </button>
-          } @else {
-            <span class="collapse-spacer"></span>
-          }
-
-          <strong>{{ node.task.title }}</strong>
-        </div>
-
-        <span class="priority-pill" [class]="priorityClass(node.task.priority)">
-          {{ node.task.priority }}
-        </span>
-      </div>
-
-      <div class="node-meta">
-        <span class="status-pill" [class]="statusClass(node.task.status)">
-          {{ node.task.status }}
-        </span>
-
-        <span>{{ assigneeLabel(node) }}</span>
-
-        @if (node.task.dueDate) {
-          <span>Due {{ node.task.dueDate }}</span>
-        }
-      </div>
-
-      @if (hasChildren(node)) {
-        <div class="node-progress">
-          <div class="progress-header">
-            <span class="progress-label">{{ progressLabel(node) }}</span>
-
-            <span class="dependency-pill" [class]="dependencyStateClass(node)">
-              {{ dependencyStateLabel(node) }}
-            </span>
-          </div>
-
-          <div class="progress-track">
-            <div class="progress-fill" [style.width.%]="completionPercent(node)"></div>
-          </div>
-        </div>
-
-        @if (parentClosureWarning(node)) {
-          <div class="node-warning">
-            {{ parentClosureWarning(node) }}
-          </div>
-        }
-      }
-
-      @if (node.task.blockerReason) {
-        <div class="node-blocker">
-          {{ node.task.blockerReason }}
-        </div>
-      }
-
-      <div class="node-actions">
-        <button
-          type="button"
-          class="child-task-button"
-          (click)="openCreateChildModal(node, $event)"
-        >
-          + Child Task
-        </button>
-      </div>
-    </article>
-
-    @if (hasChildren(node) && !isCollapsed(node)) {
-      <div class="children-lane">
-        <div class="children-spine" aria-hidden="true"></div>
-
-        @for (child of node.children; track child.task.id) {
-          <ng-container
-            *ngTemplateOutlet="nodeTemplate; context: { node: child, depth: depth + 1 }"
-          >
-          </ng-container>
-        }
-      </div>
-    }
-  </div>
-</ng-template>
